@@ -12,12 +12,129 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bookReaderExplorer",
+          "title": "Reader",
+          "icon": "resources/book.svg"
+        }
+      ]
+    },
+    "views": {
+      "bookReaderExplorer": [
+        {
+          "id": "bookReaderLibrary",
+          "name": "Library"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "bookReaderLibrary",
+        "contents": "No EPUB files found.\n[Add Library Folder](command:bookReader.chooseLibraryFolder)\nBy default the current workspace folder is scanned for .epub files."
+      }
+    ],
     "commands": [
       {
-        "command": "book-reader.helloWorld",
-        "title": "Hello World"
+        "command": "bookReader.refreshLibrary",
+        "title": "Refresh Library",
+        "icon": "$(refresh)",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.chooseLibraryFolder",
+        "title": "Add Library Folder...",
+        "icon": "$(folder-opened)",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.openSettings",
+        "title": "Open Reader Settings",
+        "icon": "$(gear)",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.openToc",
+        "title": "Open Table of Contents",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.openChapter",
+        "title": "Open Chapter",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.nextChapter",
+        "title": "Next Chapter",
+        "icon": "$(arrow-right)",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.previousChapter",
+        "title": "Previous Chapter",
+        "icon": "$(arrow-left)",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.backToToc",
+        "title": "Back to Table of Contents",
+        "icon": "$(list-unordered)",
+        "category": "Reader"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "bookReader.refreshLibrary",
+          "when": "view == bookReaderLibrary",
+          "group": "navigation@1"
+        },
+        {
+          "command": "bookReader.chooseLibraryFolder",
+          "when": "view == bookReaderLibrary",
+          "group": "navigation@2"
+        },
+        {
+          "command": "bookReader.openSettings",
+          "when": "view == bookReaderLibrary",
+          "group": "navigation@3"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "bookReader.previousChapter",
+          "when": "resourceScheme == book-reader-chapter",
+          "group": "navigation@1"
+        },
+        {
+          "command": "bookReader.backToToc",
+          "when": "resourceScheme == book-reader-chapter",
+          "group": "navigation@2"
+        },
+        {
+          "command": "bookReader.nextChapter",
+          "when": "resourceScheme == book-reader-chapter",
+          "group": "navigation@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Reader",
+      "properties": {
+        "bookReader.libraryFolders": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Folders to scan for .epub files. When empty, the current workspace folder(s) are scanned."
+        },
+        "bookReader.autoOpenPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open VS Code's built-in Markdown preview alongside a chapter's source."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
@@ -34,19 +151,24 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.134.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
-    "typescript-eslint": "^8.61.1",
-    "eslint": "^10.5.0",
+    "@types/turndown": "^5.0.6",
+    "@types/vscode": "^1.134.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
     "esbuild": "^0.28.1",
+    "eslint": "^10.5.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^6.0.3",
-    "@vscode/test-cli": "^0.0.15",
-    "@vscode/test-electron": "^3.0.0"
+    "typescript-eslint": "^8.61.1"
   },
   "overrides": {
     "diff": "^8.0.4",
     "serialize-javascript": "^7.0.6"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "turndown": "^7.2.4"
   }
 }
