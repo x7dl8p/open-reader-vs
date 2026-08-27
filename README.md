@@ -1,71 +1,33 @@
-# book-reader README
+# Reader
 
-This is the README for your extension "book-reader". After writing up a brief description, we recommend including the following sections.
+A native EPUB reader for VS Code. No webview — chapters open as real Markdown documents in the editor, using VS Code's own theming, fonts, and built-in Markdown preview.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- **Library view** in the activity bar — lists every `.epub` found in your library folders; expand a book to see its chapters.
+- Click a book to open its **table of contents** as a document in the editor.
+- Click a chapter to open it as a **Markdown document**, with an optional live preview via VS Code's built-in Markdown preview.
+- Editor-title buttons for **previous / next chapter** and **back to table of contents** while a chapter is open.
+- **Reading progress** is remembered per book and shown in the Library view.
+- Embedded chapter images are extracted to disk and referenced by file path, instead of being inlined as data URIs.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+None — everything runs locally, no external services.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `bookReader.libraryFolders`: Folders to scan for `.epub` files. When empty, the current workspace folder(s) are scanned.
+- `bookReader.autoOpenPreview`: Automatically open VS Code's built-in Markdown preview alongside a chapter's source (default: `true`).
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Table/complex layout formatting inside EPUBs is flattened to plain Markdown.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release.
