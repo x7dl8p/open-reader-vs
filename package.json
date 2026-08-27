@@ -3,6 +3,7 @@
   "displayName": "Reader",
   "description": "Native EPUB reader for VS Code",
   "version": "0.0.1",
+  "publisher": "x7dl8p",
   "engines": {
     "vscode": "^1.107.0"
   },
@@ -26,9 +27,23 @@
         {
           "id": "bookReaderLibrary",
           "name": "Library"
+        },
+        {
+          "id": "bookReaderNowReading",
+          "name": "Now Reading",
+          "type": "webview"
         }
       ]
     },
+    "languages": [
+      {
+        "id": "bookReaderProse",
+        "aliases": [
+          "Book Reader"
+        ],
+        "extensions": []
+      }
+    ],
     "viewsWelcome": [
       {
         "view": "bookReaderLibrary",
@@ -61,7 +76,14 @@
       },
       {
         "command": "bookReader.openChapter",
-        "title": "Open Chapter",
+        "title": "Open in Editor Tab",
+        "icon": "$(arrow-right)",
+        "category": "Reader"
+      },
+      {
+        "command": "bookReader.openInNowReading",
+        "title": "Show in Now Reading Panel",
+        "icon": "$(arrow-left)",
         "category": "Reader"
       },
       {
@@ -117,6 +139,18 @@
           "when": "resourceScheme == book-reader-chapter",
           "group": "navigation@3"
         }
+      ],
+      "view/item/context": [
+        {
+          "command": "bookReader.openInNowReading",
+          "when": "view == bookReaderLibrary && viewItem == chapter",
+          "group": "inline@1"
+        },
+        {
+          "command": "bookReader.openChapter",
+          "when": "view == bookReaderLibrary && viewItem == chapter",
+          "group": "inline@2"
+        }
       ]
     },
     "configuration": {
@@ -129,11 +163,26 @@
           },
           "default": [],
           "description": "Folders to scan for .epub files. When empty, the current workspace folder(s) are scanned."
-        },
-        "bookReader.autoOpenPreview": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically open VS Code's built-in Markdown preview alongside a chapter's source."
+        }
+      }
+    },
+    "configurationDefaults": {
+      "[bookReaderProse]": {
+        "editor.fontFamily": "Georgia, 'Iowan Old Style', 'Palatino Linotype', serif",
+        "editor.fontSize": 17,
+        "editor.lineHeight": 30,
+        "editor.wordWrap": "on",
+        "editor.lineNumbers": "off",
+        "editor.minimap.enabled": false,
+        "editor.renderWhitespace": "none",
+        "editor.overviewRulerBorder": false,
+        "editor.folding": false,
+        "editor.guides.indentation": false,
+        "editor.occurrencesHighlight": "off",
+        "editor.quickSuggestions": {
+          "other": false,
+          "comments": false,
+          "strings": false
         }
       }
     }

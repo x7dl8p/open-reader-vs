@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 export const CHAPTER_SCHEME = 'book-reader-chapter';
 export const TOC_SCHEME = 'book-reader-toc';
+export const PROSE_LANGUAGE = 'bookReaderProse';
 
 function slug(text: string): string {
   return text

@@ -2,13 +2,16 @@ import * as vscode from 'vscode';
 import type { Library } from './epub/library';
 import type { ProgressStore } from './epub/progress';
 import type { LibraryTreeProvider } from './tree/libraryTree';
-import { CHAPTER_SCHEME, chapterUri, parseChapterQuery, tocUri } from './content/uris';
+import type { ChapterItem } from './tree/libraryTree';
+import type { NowReadingViewProvider } from './content/nowReadingView';
+import { CHAPTER_SCHEME, PROSE_LANGUAGE, chapterUri, parseChapterQuery, tocUri } from './content/uris';
 
 export function registerCommands(
   context: vscode.ExtensionContext,
   library: Library,
   progress: ProgressStore,
-  tree: LibraryTreeProvider
+  tree: LibraryTreeProvider,
+  nowReading: NowReadingViewProvider
 ): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('bookReader.refreshLibrary', () => tree.refresh()),
@@ -30,18 +33,25 @@ export function registerCommands(
     }),
 
     vscode.commands.registerCommand('bookReader.openSettings', () => {
-      vscode.commands.executeCommand('workbench.action.openSettings', '@ext:book-reader');
+      vscode.commands.executeCommand('workbench.action.openSettings', `@ext:${context.extension.id}`);
     }),
 
     vscode.commands.registerCommand('bookReader.openToc', async (filePath: string) => {
       const meta = await library.getMeta(filePath);
       const uri = tocUri(filePath, meta.title);
       const doc = await vscode.workspace.openTextDocument(uri);
+      await vscode.languages.setTextDocumentLanguage(doc, PROSE_LANGUAGE);
       await vscode.window.showTextDocument(doc, { preview: false });
     }),
 
-    vscode.commands.registerCommand('bookReader.openChapter', async (filePath: string, index: number) => {
-      await openChapter(library, progress, tree, filePath, index);
+    vscode.commands.registerCommand('bookReader.openChapter', async (item: ChapterItem) => {
+      await openChapter(library, progress, tree, item.filePath, item.index);
+    }),
+
+    vscode.commands.registerCommand('bookReader.openInNowReading', async (item: ChapterItem) => {
+      await nowReading.show(item.filePath, item.index);
+      await progress.set(item.filePath, item.index);
+      tree.refresh();
     }),
 
     vscode.commands.registerCommand('bookReader.nextChapter', () => stepChapter(library, progress, tree, 1)),
@@ -69,12 +79,8 @@ async function openChapter(
   const uri = chapterUri(filePath, clamped, meta.title, chapter.title);
 
   const doc = await vscode.workspace.openTextDocument(uri);
+  await vscode.languages.setTextDocumentLanguage(doc, PROSE_LANGUAGE);
   await vscode.window.showTextDocument(doc, { preview: false });
-
-  const autoPreview = vscode.workspace.getConfiguration('bookReader').get<boolean>('autoOpenPreview');
-  if (autoPreview) {
-    await vscode.commands.executeCommand('markdown.showPreview', uri);
-  }
 
   await progress.set(filePath, clamped);
   tree.refresh();
