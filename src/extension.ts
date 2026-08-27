@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { Library } from './epub/library';
 import { ProgressStore } from './epub/progress';
-import { LibraryTreeProvider } from './tree/libraryTree';
+import { LibraryTreeProvider } from './tree/libraryTreeProvider';
 import { ChapterContentProvider } from './content/chapterProvider';
 import { TocContentProvider } from './content/tocProvider';
 import { NowReadingViewProvider } from './content/nowReadingView';
