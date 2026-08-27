@@ -4,7 +4,7 @@
   "description": "Native EPUB reader for VS Code",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.134.0"
+    "vscode": "^1.107.0"
   },
   "categories": [
     "Other"
@@ -156,7 +156,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
     "@types/turndown": "^5.0.6",
-    "@types/vscode": "^1.134.0",
+    "@types/vscode": "1.107.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
     "@vscode/vsce": "^3.9.2",
