@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-const KEY = 'bookReader.progress';
+const KEY = 'openReader.progress';
 
 type ProgressMap = Record<string, number>;
 

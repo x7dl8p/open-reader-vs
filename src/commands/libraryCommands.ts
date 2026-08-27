@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
 import type { LibraryTreeProvider } from '../tree/libraryTreeProvider';
+import type { SettingsPanel } from '../content/settingsView';
 
-export function registerLibraryCommands(context: vscode.ExtensionContext, tree: LibraryTreeProvider): void {
+export function registerLibraryCommands(context: vscode.ExtensionContext, tree: LibraryTreeProvider, settings: SettingsPanel): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('bookReader.refreshLibrary', () => tree.refresh()),
-    vscode.commands.registerCommand('bookReader.chooseLibraryFolder', () => chooseLibraryFolder(tree)),
-    vscode.commands.registerCommand('bookReader.openSettings', () => openSettings(context))
+    vscode.commands.registerCommand('openReader.refreshLibrary', () => tree.refresh()),
+    vscode.commands.registerCommand('openReader.chooseLibraryFolder', () => chooseLibraryFolder(tree)),
+    vscode.commands.registerCommand('openReader.openSettings', () => settings.open()),
+    vscode.commands.registerCommand('openReader.hideChapters', () => tree.setChaptersHidden(true)),
+    vscode.commands.registerCommand('openReader.showChapters', () => tree.setChaptersHidden(false))
   );
 }
 
@@ -16,15 +19,13 @@ async function chooseLibraryFolder(tree: LibraryTreeProvider): Promise<void> {
     canSelectMany: false,
     openLabel: 'Add to Library',
   });
-  if (!picked || picked.length === 0) {return;}
+  if (!picked || picked.length === 0) {
+    return;
+  }
 
-  const config = vscode.workspace.getConfiguration('bookReader');
+  const config = vscode.workspace.getConfiguration('openReader');
   const current = config.get<string[]>('libraryFolders') ?? [];
   const next = Array.from(new Set([...current, picked[0].fsPath]));
   await config.update('libraryFolders', next, vscode.ConfigurationTarget.Global);
   tree.refresh();
-}
-
-function openSettings(context: vscode.ExtensionContext): void {
-  vscode.commands.executeCommand('workbench.action.openSettings', `@ext:${context.extension.id}`);
 }

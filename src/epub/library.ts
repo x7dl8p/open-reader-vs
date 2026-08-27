@@ -3,8 +3,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import type JSZip from 'jszip';
-import { loadChapterByIndex, parseEpubBuffer } from './parser';
 import type { BookMeta, ExtractedChapter } from './types';
+import { allExtensions, formatForPath, type BookFormat } from './formats';
 
 export interface LibraryBook {
   filePath: string;
@@ -16,12 +16,13 @@ interface CacheEntry {
   mtimeMs: number;
   meta: BookMeta;
   zip: JSZip;
+  format: BookFormat;
 }
 
 /**
- * Scans the configured library folders for .epub files and parses them on demand.
- * Parsed archives are kept in memory keyed by file path + mtime, so re-opening the
- * same book (or re-expanding the tree) doesn't re-unzip it.
+ * Scans the configured library folders for supported book files (see formats.ts) and
+ * parses them on demand. Parsed archives are kept in memory keyed by file path + mtime,
+ * so re-opening the same book (or re-expanding the tree) doesn't re-unzip it.
  */
 export class Library {
   private cache = new Map<string, CacheEntry>();
@@ -29,7 +30,7 @@ export class Library {
   constructor(private imageStorageDir: string) {}
 
   getLibraryFolders(): string[] {
-    const configured = vscode.workspace.getConfiguration('bookReader').get<string[]>('libraryFolders') ?? [];
+    const configured = vscode.workspace.getConfiguration('openReader').get<string[]>('libraryFolders') ?? [];
     if (configured.length > 0) {return configured;}
 
     return (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
@@ -40,13 +41,13 @@ export class Library {
     const found: LibraryBook[] = [];
 
     for (const folder of folders) {
-      const files = await findEpubFiles(folder);
+      const files = await findBookFiles(folder);
       for (const filePath of files) {
         try {
           const entry = await this.loadEntry(filePath);
           found.push({ filePath, fileName: path.basename(filePath), meta: entry.meta });
         } catch (err) {
-          console.error(`[book-reader] Failed to parse ${filePath}:`, err);
+          console.error(`[open-reader] Failed to parse ${filePath}:`, err);
         }
       }
     }
@@ -72,10 +73,15 @@ export class Library {
       return vscode.Uri.file(dest).toString();
     };
 
-    return loadChapterByIndex(entry.zip, entry.meta, index, saveImage);
+    return entry.format.loadChapter(entry.zip, entry.meta, index, saveImage);
   }
 
   private async loadEntry(filePath: string): Promise<CacheEntry> {
+    const format = formatForPath(filePath);
+    if (!format) {
+      throw new Error(`Unsupported book format: ${filePath}`);
+    }
+
     const stat = await fs.stat(filePath);
     const cached = this.cache.get(filePath);
     if (cached && cached.mtimeMs === stat.mtimeMs) {
@@ -83,8 +89,8 @@ export class Library {
     }
 
     const buffer = await fs.readFile(filePath);
-    const { meta, zip } = await parseEpubBuffer(buffer);
-    const entry: CacheEntry = { mtimeMs: stat.mtimeMs, meta, zip };
+    const { meta, zip } = await format.parseBuffer(buffer);
+    const entry: CacheEntry = { mtimeMs: stat.mtimeMs, meta, zip, format };
     this.cache.set(filePath, entry);
     return entry;
   }
@@ -94,8 +100,9 @@ export class Library {
   }
 }
 
-async function findEpubFiles(root: string, depth = 3): Promise<string[]> {
+async function findBookFiles(root: string, depth = 3): Promise<string[]> {
   const results: string[] = [];
+  const extensions = allExtensions();
 
   async function walk(dir: string, remainingDepth: number) {
     let entries: import('fs').Dirent[];
@@ -110,7 +117,7 @@ async function findEpubFiles(root: string, depth = 3): Promise<string[]> {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         if (remainingDepth > 0) {await walk(full, remainingDepth - 1);}
-      } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.epub')) {
+      } else if (entry.isFile() && extensions.some((ext) => entry.name.toLowerCase().endsWith(ext))) {
         results.push(full);
       }
     }

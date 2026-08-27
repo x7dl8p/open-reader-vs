@@ -6,14 +6,26 @@ import { ChapterItem } from './chapterItem';
 
 export type LibraryTreeElement = BookItem | ChapterItem;
 
+const CONTEXT_KEY = 'openReader.chaptersHidden';
+
 export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeElement> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<LibraryTreeElement | undefined | void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-  constructor(private library: Library, private progress: ProgressStore) {}
+  private chaptersHidden = false;
+
+  constructor(private library: Library, private progress: ProgressStore) {
+    void vscode.commands.executeCommand('setContext', CONTEXT_KEY, false);
+  }
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
+  }
+
+  setChaptersHidden(hidden: boolean): void {
+    this.chaptersHidden = hidden;
+    void vscode.commands.executeCommand('setContext', CONTEXT_KEY, hidden);
+    this.refresh();
   }
 
   getTreeItem(element: LibraryTreeElement): vscode.TreeItem {
@@ -21,14 +33,21 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
   }
 
   async getChildren(element?: LibraryTreeElement): Promise<LibraryTreeElement[]> {
-    if (!element) {return this.getBooks();}
-    if (element instanceof BookItem) {return this.getChapters(element);}
+    if (!element) {
+      return this.getBooks();
+    }
+    if (element instanceof BookItem && !this.chaptersHidden) {
+      return this.getChapters(element);
+    }
     return [];
   }
 
   private async getBooks(): Promise<BookItem[]> {
     const books = await this.library.listBooks();
-    return books.map((book) => new BookItem(book, this.progress.get(book.filePath)));
+    const state = this.chaptersHidden
+      ? vscode.TreeItemCollapsibleState.None
+      : vscode.TreeItemCollapsibleState.Collapsed;
+    return books.map((book) => new BookItem(book, this.progress.get(book.filePath), state));
   }
 
   private getChapters(bookItem: BookItem): ChapterItem[] {

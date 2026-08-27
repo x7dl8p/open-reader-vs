@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 
-export const CHAPTER_SCHEME = 'book-reader-chapter';
-export const TOC_SCHEME = 'book-reader-toc';
-export const PROSE_LANGUAGE = 'bookReaderProse';
+export const CHAPTER_SCHEME = 'open-reader-chapter';
+export const TOC_SCHEME = 'open-reader-toc';
+export const PROSE_LANGUAGE = 'openReaderProse';
 
 function slug(text: string): string {
   return text

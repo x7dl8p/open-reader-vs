@@ -15,14 +15,14 @@ interface ReadingDeps {
 
 export function registerReadingCommands(context: vscode.ExtensionContext, deps: ReadingDeps): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('bookReader.openToc', (filePath: string) => openToc(filePath, deps)),
-    vscode.commands.registerCommand('bookReader.openChapter', (item: ChapterItem) => openChapter(item.filePath, item.index, deps)),
-    vscode.commands.registerCommand('bookReader.openInNowReading', (item: ChapterItem) =>
+    vscode.commands.registerCommand('openReader.openToc', (filePath: string) => openToc(filePath, deps)),
+    vscode.commands.registerCommand('openReader.openChapter', (item: ChapterItem) => openChapter(item.filePath, item.index, deps)),
+    vscode.commands.registerCommand('openReader.openInNowReading', (item: ChapterItem) =>
       openInNowReading(item.filePath, item.index, deps)
     ),
-    vscode.commands.registerCommand('bookReader.nextChapter', () => stepEditorChapter(1, deps)),
-    vscode.commands.registerCommand('bookReader.previousChapter', () => stepEditorChapter(-1, deps)),
-    vscode.commands.registerCommand('bookReader.backToToc', backToToc)
+    vscode.commands.registerCommand('openReader.nextChapter', () => stepEditorChapter(1, deps)),
+    vscode.commands.registerCommand('openReader.previousChapter', () => stepEditorChapter(-1, deps)),
+    vscode.commands.registerCommand('openReader.backToToc', backToToc)
   );
 }
 
@@ -63,7 +63,7 @@ async function backToToc(): Promise<void> {
   if (!active || active.scheme !== CHAPTER_SCHEME) {return;}
 
   const { filePath } = parseChapterQuery(active);
-  await vscode.commands.executeCommand('bookReader.openToc', filePath);
+  await vscode.commands.executeCommand('openReader.openToc', filePath);
 }
 
 async function loadClampedChapter(library: Library, filePath: string, index: number) {

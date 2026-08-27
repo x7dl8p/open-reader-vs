@@ -1,13 +1,15 @@
-# Reader
+# Open-Reader
 
-A native EPUB reader for VS Code. No webview — chapters open as real Markdown documents in the editor, using VS Code's own theming, fonts, and built-in Markdown preview.
+A native e-book reader for VS Code. Supports EPUB and CBZ today; the format layer (`src/epub/formats.ts`) is a small registry so more formats can be added without touching the rest of the extension.
 
 ## Features
 
-- **Library view** in the activity bar — lists every `.epub` found in your library folders; expand a book to see its chapters.
+- **Library view** in the activity bar — lists every `.epub`/`.cbz` found in your library folders; expand a book to see its chapters (or comic pages).
 - Click a book to open its **table of contents** as a document in the editor.
-- Click a chapter to open it as a **Markdown document**, with an optional live preview via VS Code's built-in Markdown preview.
-- Editor-title buttons for **previous / next chapter** and **back to table of contents** while a chapter is open.
+- Each chapter has two destinations, picked per-click:
+  - **Now Reading** panel, stacked below Library in the sidebar — styled prose (bold/italic/images), independent of your code editor font, with its own Prev/Next controls.
+  - A real **editor tab**, using its own font/size/line-height settings that never touch your code editor's settings.
+- **Reader Settings** page (gear icon) — font family/size/weight, line height, letter spacing, alignment, margins, paragraph indent, two-page layout, and reading theme (presets or custom colors), all applied live to the Now Reading panel.
 - **Reading progress** is remembered per book and shown in the Library view.
 - Embedded chapter images are extracted to disk and referenced by file path, instead of being inlined as data URIs.
 
@@ -17,14 +19,14 @@ None — everything runs locally, no external services.
 
 ## Extension Settings
 
-This extension contributes the following settings:
+This extension contributes the following settings (all under `openReader.*`):
 
-- `bookReader.libraryFolders`: Folders to scan for `.epub` files. When empty, the current workspace folder(s) are scanned.
-- `bookReader.autoOpenPreview`: Automatically open VS Code's built-in Markdown preview alongside a chapter's source (default: `true`).
+- `libraryFolders`: Folders to scan for `.epub` files. When empty, the current workspace folder(s) are scanned.
+- `fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`, `textAlign`, `indent`, `showChapterNumbers`, `twoPageMode`, `marginX`, `marginY`, `bgColor`, `textColor`: reading typography/theme, editable from the Reader Settings page or directly here.
 
 ## Known Issues
 
-- Table/complex layout formatting inside EPUBs is flattened to plain Markdown.
+- Table/complex layout formatting inside EPUBs is flattened to plain HTML/Markdown.
 
 ## Release Notes
 

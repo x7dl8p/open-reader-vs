@@ -1,7 +1,7 @@
 {
-  "name": "book-reader",
-  "displayName": "Reader",
-  "description": "Native EPUB reader for VS Code",
+  "name": "open-reader",
+  "displayName": "Open-Reader",
+  "description": "Native e-book reader for VS Code (EPUB, CBZ)",
   "version": "0.0.1",
   "publisher": "x7dl8p",
   "icon": "resources/icon.png",
@@ -17,20 +17,20 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "bookReaderExplorer",
-          "title": "Reader",
+          "id": "openReaderExplorer",
+          "title": "Open-Reader",
           "icon": "resources/book.svg"
         }
       ]
     },
     "views": {
-      "bookReaderExplorer": [
+      "openReaderExplorer": [
         {
-          "id": "bookReaderLibrary",
+          "id": "openReaderLibrary",
           "name": "Library"
         },
         {
-          "id": "bookReaderNowReading",
+          "id": "openReaderNowReading",
           "name": "Now Reading",
           "type": "webview"
         }
@@ -38,69 +38,81 @@
     },
     "languages": [
       {
-        "id": "bookReaderProse",
+        "id": "openReaderProse",
         "aliases": [
-          "Book Reader"
+          "Open Reader"
         ],
         "extensions": []
       }
     ],
     "viewsWelcome": [
       {
-        "view": "bookReaderLibrary",
-        "contents": "No EPUB files found.\n[Add Library Folder](command:bookReader.chooseLibraryFolder)\nBy default the current workspace folder is scanned for .epub files."
+        "view": "openReaderLibrary",
+        "contents": "No books found.\n[Add Library Folder](command:openReader.chooseLibraryFolder)\nBy default the current workspace folder is scanned for .epub & .cbz files."
       }
     ],
     "commands": [
       {
-        "command": "bookReader.refreshLibrary",
+        "command": "openReader.refreshLibrary",
         "title": "Refresh Library",
         "icon": "$(refresh)",
         "category": "Reader"
       },
       {
-        "command": "bookReader.chooseLibraryFolder",
+        "command": "openReader.chooseLibraryFolder",
         "title": "Add Library Folder...",
         "icon": "$(folder-opened)",
         "category": "Reader"
       },
       {
-        "command": "bookReader.openSettings",
+        "command": "openReader.openSettings",
         "title": "Open Reader Settings",
         "icon": "$(gear)",
         "category": "Reader"
       },
       {
-        "command": "bookReader.openToc",
+        "command": "openReader.hideChapters",
+        "title": "Hide Chapters",
+        "icon": "$(eye)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.showChapters",
+        "title": "Show Chapters",
+        "icon": "$(eye-closed)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.openToc",
         "title": "Open Table of Contents",
         "category": "Reader"
       },
       {
-        "command": "bookReader.openChapter",
+        "command": "openReader.openChapter",
         "title": "Open in Editor Tab",
         "icon": "$(arrow-right)",
         "category": "Reader"
       },
       {
-        "command": "bookReader.openInNowReading",
+        "command": "openReader.openInNowReading",
         "title": "Show in Now Reading Panel",
         "icon": "$(arrow-left)",
         "category": "Reader"
       },
       {
-        "command": "bookReader.nextChapter",
+        "command": "openReader.nextChapter",
         "title": "Next Chapter",
         "icon": "$(arrow-right)",
         "category": "Reader"
       },
       {
-        "command": "bookReader.previousChapter",
+        "command": "openReader.previousChapter",
         "title": "Previous Chapter",
         "icon": "$(arrow-left)",
         "category": "Reader"
       },
       {
-        "command": "bookReader.backToToc",
+        "command": "openReader.backToToc",
         "title": "Back to Table of Contents",
         "icon": "$(list-unordered)",
         "category": "Reader"
@@ -109,66 +121,151 @@
     "menus": {
       "view/title": [
         {
-          "command": "bookReader.refreshLibrary",
-          "when": "view == bookReaderLibrary",
+          "command": "openReader.hideChapters",
+          "when": "view == openReaderLibrary && !openReader.chaptersHidden",
+          "group": "navigation@0"
+        },
+        {
+          "command": "openReader.showChapters",
+          "when": "view == openReaderLibrary && openReader.chaptersHidden",
+          "group": "navigation@0"
+        },
+        {
+          "command": "openReader.refreshLibrary",
+          "when": "view == openReaderLibrary",
           "group": "navigation@1"
         },
         {
-          "command": "bookReader.chooseLibraryFolder",
-          "when": "view == bookReaderLibrary",
+          "command": "openReader.chooseLibraryFolder",
+          "when": "view == openReaderLibrary",
           "group": "navigation@2"
         },
         {
-          "command": "bookReader.openSettings",
-          "when": "view == bookReaderLibrary",
+          "command": "openReader.openSettings",
+          "when": "view == openReaderLibrary",
           "group": "navigation@3"
         }
       ],
       "editor/title": [
         {
-          "command": "bookReader.previousChapter",
-          "when": "resourceScheme == book-reader-chapter",
+          "command": "openReader.previousChapter",
+          "when": "resourceScheme == open-reader-chapter",
           "group": "navigation@1"
         },
         {
-          "command": "bookReader.backToToc",
-          "when": "resourceScheme == book-reader-chapter",
+          "command": "openReader.backToToc",
+          "when": "resourceScheme == open-reader-chapter",
           "group": "navigation@2"
         },
         {
-          "command": "bookReader.nextChapter",
-          "when": "resourceScheme == book-reader-chapter",
+          "command": "openReader.nextChapter",
+          "when": "resourceScheme == open-reader-chapter",
           "group": "navigation@3"
         }
       ],
       "view/item/context": [
         {
-          "command": "bookReader.openInNowReading",
-          "when": "view == bookReaderLibrary && viewItem == chapter",
+          "command": "openReader.openInNowReading",
+          "when": "view == openReaderLibrary && viewItem == chapter",
           "group": "inline@1"
         },
         {
-          "command": "bookReader.openChapter",
-          "when": "view == bookReaderLibrary && viewItem == chapter",
+          "command": "openReader.openChapter",
+          "when": "view == openReaderLibrary && viewItem == chapter",
           "group": "inline@2"
         }
       ]
     },
     "configuration": {
-      "title": "Reader",
+      "title": "Open-Reader",
       "properties": {
-        "bookReader.libraryFolders": {
+        "openReader.libraryFolders": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "default": [],
           "description": "Folders to scan for .epub files. When empty, the current workspace folder(s) are scanned."
+        },
+        "openReader.fontFamily": {
+          "type": "string",
+          "enum": ["serif", "sans", "mono", "dyslexic"],
+          "default": "serif",
+          "description": "Font used in the Now Reading panel."
+        },
+        "openReader.fontSize": {
+          "type": "string",
+          "enum": ["sm", "md", "lg", "xl", "2xl"],
+          "default": "md",
+          "description": "Text size in the Now Reading panel."
+        },
+        "openReader.fontWeight": {
+          "type": "string",
+          "enum": ["light", "normal", "medium", "bold"],
+          "default": "normal",
+          "description": "Font weight in the Now Reading panel."
+        },
+        "openReader.lineHeight": {
+          "type": "string",
+          "enum": ["tight", "normal", "relaxed", "loose"],
+          "default": "relaxed",
+          "description": "Line height in the Now Reading panel."
+        },
+        "openReader.letterSpacing": {
+          "type": "string",
+          "enum": ["tight", "normal", "wide", "wider"],
+          "default": "normal",
+          "description": "Letter spacing in the Now Reading panel."
+        },
+        "openReader.textAlign": {
+          "type": "string",
+          "enum": ["left", "justify", "center"],
+          "default": "left",
+          "description": "Text alignment in the Now Reading panel."
+        },
+        "openReader.indent": {
+          "type": "boolean",
+          "default": true,
+          "description": "Indent the first line of each paragraph instead of spacing paragraphs apart."
+        },
+        "openReader.showChapterNumbers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the chapter position (e.g. 3/24) in the Now Reading toolbar."
+        },
+        "openReader.twoPageMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Lay out the chapter as newspaper-style columns instead of one flowing column."
+        },
+        "openReader.marginX": {
+          "type": "number",
+          "default": 34,
+          "minimum": 0,
+          "maximum": 500,
+          "description": "Left/right padding (px) in the Now Reading panel."
+        },
+        "openReader.marginY": {
+          "type": "number",
+          "default": 11,
+          "minimum": 0,
+          "maximum": 500,
+          "description": "Top/bottom padding (px) in the Now Reading panel."
+        },
+        "openReader.bgColor": {
+          "type": "string",
+          "default": "",
+          "description": "Custom background color (hex) for the Now Reading panel. Empty follows the current VS Code theme."
+        },
+        "openReader.textColor": {
+          "type": "string",
+          "default": "",
+          "description": "Custom text color (hex) for the Now Reading panel. Empty follows the current VS Code theme."
         }
       }
     },
     "configurationDefaults": {
-      "[bookReaderProse]": {
+      "[openReaderProse]": {
         "editor.fontFamily": "Georgia, 'Iowan Old Style', 'Palatino Linotype', serif",
         "editor.fontSize": 17,
         "editor.lineHeight": 30,

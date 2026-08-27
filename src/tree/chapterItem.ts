@@ -7,7 +7,7 @@ export class ChapterItem extends vscode.TreeItem {
     this.iconPath = new vscode.ThemeIcon(isCurrent ? 'debug-stackframe-dot' : 'circle-small');
     this.description = isCurrent ? 'reading' : undefined;
     this.command = {
-      command: 'bookReader.openInNowReading',
+      command: 'openReader.openInNowReading',
       title: 'Show in Now Reading',
       arguments: [this],
     };
