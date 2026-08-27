@@ -4,6 +4,7 @@
   "description": "Native EPUB reader for VS Code",
   "version": "0.0.1",
   "publisher": "x7dl8p",
+  "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.107.0"
   },
