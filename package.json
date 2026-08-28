@@ -1,9 +1,13 @@
 {
   "name": "open-reader",
-  "displayName": "Open-Reader",
+  "displayName": "Open Reader",
   "description": "Native e-book reader for VS Code (EPUB, CBZ)",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "publisher": "x7dl8p",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/x7dl8p/open-reader-vs"
+  },
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.107.0"
@@ -31,7 +35,7 @@
         },
         {
           "id": "openReaderNowReading",
-          "name": "Now Reading",
+          "name": "Reader",
           "type": "webview"
         }
       ]
@@ -54,31 +58,31 @@
     "commands": [
       {
         "command": "openReader.refreshLibrary",
-        "title": "Refresh Library",
+        "title": "Refresh",
         "icon": "$(refresh)",
         "category": "Reader"
       },
       {
         "command": "openReader.chooseLibraryFolder",
-        "title": "Add Library Folder...",
+        "title": "Add Folder",
         "icon": "$(folder-opened)",
         "category": "Reader"
       },
       {
         "command": "openReader.openSettings",
-        "title": "Open Reader Settings",
+        "title": "Settings",
         "icon": "$(gear)",
         "category": "Reader"
       },
       {
-        "command": "openReader.hideChapters",
-        "title": "Hide Chapters",
+        "command": "openReader.showFiles",
+        "title": "Browse Library Files",
         "icon": "$(eye)",
         "category": "Reader"
       },
       {
-        "command": "openReader.showChapters",
-        "title": "Show Chapters",
+        "command": "openReader.showLibrary",
+        "title": "Back to Book List",
         "icon": "$(eye-closed)",
         "category": "Reader"
       },
@@ -89,14 +93,14 @@
       },
       {
         "command": "openReader.openChapter",
-        "title": "Open in Editor Tab",
-        "icon": "$(arrow-right)",
+        "title": "Read in Editor Area",
+        "icon": "$(layout-centered)",
         "category": "Reader"
       },
       {
         "command": "openReader.openInNowReading",
-        "title": "Show in Now Reading Panel",
-        "icon": "$(arrow-left)",
+        "title": "Read in Reader Panel",
+        "icon": "$(layout-sidebar-left)",
         "category": "Reader"
       },
       {
@@ -116,50 +120,57 @@
         "title": "Back to Table of Contents",
         "icon": "$(list-unordered)",
         "category": "Reader"
+      },
+      {
+        "command": "openReader.showAbout",
+        "title": "About",
+        "icon": "$(info)",
+        "category": "Reader"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "openReader.hideChapters",
-          "when": "view == openReaderLibrary && !openReader.chaptersHidden",
+          "command": "openReader.showFiles",
+          "when": "view == openReaderLibrary && !openReader.fileView",
           "group": "navigation@0"
         },
         {
-          "command": "openReader.showChapters",
-          "when": "view == openReaderLibrary && openReader.chaptersHidden",
+          "command": "openReader.showLibrary",
+          "when": "view == openReaderLibrary && openReader.fileView",
           "group": "navigation@0"
         },
         {
           "command": "openReader.refreshLibrary",
-          "when": "view == openReaderLibrary",
-          "group": "navigation@1"
+          "when": "view == openReaderLibrary"
         },
         {
           "command": "openReader.chooseLibraryFolder",
-          "when": "view == openReaderLibrary",
-          "group": "navigation@2"
+          "when": "view == openReaderLibrary"
         },
         {
           "command": "openReader.openSettings",
-          "when": "view == openReaderLibrary",
-          "group": "navigation@3"
+          "when": "view == openReaderLibrary"
+        },
+        {
+          "command": "openReader.showAbout",
+          "when": "view == openReaderLibrary"
         }
       ],
       "editor/title": [
         {
           "command": "openReader.previousChapter",
-          "when": "resourceScheme == open-reader-chapter",
+          "when": "activeWebviewPanelId == openReaderReader",
           "group": "navigation@1"
         },
         {
           "command": "openReader.backToToc",
-          "when": "resourceScheme == open-reader-chapter",
+          "when": "activeWebviewPanelId == openReaderReader",
           "group": "navigation@2"
         },
         {
           "command": "openReader.nextChapter",
-          "when": "resourceScheme == open-reader-chapter",
+          "when": "activeWebviewPanelId == openReaderReader",
           "group": "navigation@3"
         }
       ],
@@ -189,37 +200,67 @@
         },
         "openReader.fontFamily": {
           "type": "string",
-          "enum": ["serif", "sans", "mono", "dyslexic"],
+          "enum": [
+            "serif",
+            "sans",
+            "mono",
+            "dyslexic"
+          ],
           "default": "serif",
           "description": "Font used in the Now Reading panel."
         },
         "openReader.fontSize": {
           "type": "string",
-          "enum": ["sm", "md", "lg", "xl", "2xl"],
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl"
+          ],
           "default": "md",
           "description": "Text size in the Now Reading panel."
         },
         "openReader.fontWeight": {
           "type": "string",
-          "enum": ["light", "normal", "medium", "bold"],
+          "enum": [
+            "light",
+            "normal",
+            "medium",
+            "bold"
+          ],
           "default": "normal",
           "description": "Font weight in the Now Reading panel."
         },
         "openReader.lineHeight": {
           "type": "string",
-          "enum": ["tight", "normal", "relaxed", "loose"],
+          "enum": [
+            "tight",
+            "normal",
+            "relaxed",
+            "loose"
+          ],
           "default": "relaxed",
           "description": "Line height in the Now Reading panel."
         },
         "openReader.letterSpacing": {
           "type": "string",
-          "enum": ["tight", "normal", "wide", "wider"],
+          "enum": [
+            "tight",
+            "normal",
+            "wide",
+            "wider"
+          ],
           "default": "normal",
           "description": "Letter spacing in the Now Reading panel."
         },
         "openReader.textAlign": {
           "type": "string",
-          "enum": ["left", "justify", "center"],
+          "enum": [
+            "left",
+            "justify",
+            "center"
+          ],
           "default": "left",
           "description": "Text alignment in the Now Reading panel."
         },

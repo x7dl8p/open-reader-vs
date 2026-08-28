@@ -10,7 +10,8 @@ export function renderChapterHtml(
   meta: BookMeta,
   chapter: ExtractedChapter,
   index: number,
-  prefs: ReaderPrefs
+  prefs: ReaderPrefs,
+  initialScroll = 0
 ): string {
   const vars = cssVarsToDeclarations(prefsToCssVars(prefs));
   const body = rewriteImageSrcs(chapter.html, webview);
@@ -78,6 +79,29 @@ img { max-width: 100%; height: auto; border-radius: 4px; }
       const vars = event.data.vars;
       for (const name in vars) { document.documentElement.style.setProperty(name, vars[name]); }
     });
+
+    // Resume where the reader left off. The webview is torn down whenever the view is
+    // hidden, so the position is reported to the extension and handed back on render.
+    const initialRatio = ${initialScroll.toFixed(6)};
+    let touched = false;
+    for (const type of ['wheel', 'keydown', 'touchmove', 'mousedown']) {
+      window.addEventListener(type, () => { touched = true; }, { passive: true });
+    }
+
+    const maxScroll = () => Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const restore = () => { if (initialRatio > 0) { window.scrollTo(0, initialRatio * maxScroll()); } };
+
+    restore();
+    // Images settle after load and change the page height, so place the reader again.
+    window.addEventListener('load', () => { if (!touched) { restore(); } });
+
+    let reportTimer;
+    window.addEventListener('scroll', () => {
+      clearTimeout(reportTimer);
+      reportTimer = setTimeout(() => {
+        vscode.postMessage({ type: 'scroll', ratio: window.scrollY / maxScroll() });
+      }, 150);
+    }, { passive: true });
   </script>
 </body>
 </html>`;

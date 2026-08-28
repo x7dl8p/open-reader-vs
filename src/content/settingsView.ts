@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import type { NowReadingViewProvider } from './nowReadingView';
 import { DEFAULT_READER_PREFS, loadReaderPrefs, updateReaderPref, type ReaderPrefs } from '../epub/readerPrefs';
 import { renderSettingsHtml } from './settings/render';
 import { debounce } from '../util/debounce';
@@ -10,6 +9,11 @@ type Message =
   | { type: 'reset' };
 
 const PERSIST_DELAY_MS = 200;
+
+/** A reading surface that re-styles itself live while the settings panel is open. */
+export interface PrefsTarget {
+  applyPrefs(prefs: ReaderPrefs): void;
+}
 
 export class SettingsPanel {
   private panel?: vscode.WebviewPanel;
@@ -24,7 +28,7 @@ export class SettingsPanel {
     }
   }, PERSIST_DELAY_MS);
 
-  constructor(private nowReading: NowReadingViewProvider) {}
+  constructor(private targets: PrefsTarget[]) {}
 
   open(): void {
     if (this.panel) {
@@ -69,15 +73,21 @@ export class SettingsPanel {
     for (const [key, value] of Object.entries(patch)) {
       this.pending.set(key as keyof ReaderPrefs, value as ReaderPrefs[keyof ReaderPrefs]);
     }
-    this.nowReading.applyPrefs(this.prefs);
+    this.broadcast();
     this.flush();
+  }
+
+  private broadcast(): void {
+    for (const target of this.targets) {
+      target.applyPrefs(this.prefs);
+    }
   }
 
   private resetAll(): void {
     this.flush.cancel();
     this.pending.clear();
     this.prefs = { ...DEFAULT_READER_PREFS };
-    this.nowReading.applyPrefs(this.prefs);
+    this.broadcast();
     for (const key of Object.keys(DEFAULT_READER_PREFS) as Array<keyof ReaderPrefs>) {
       void updateReaderPref(key, DEFAULT_READER_PREFS[key]);
     }
