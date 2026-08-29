@@ -2,13 +2,14 @@
   "name": "open-reader",
   "displayName": "Open Reader",
   "description": "Native e-book reader for VS Code — read EPUB books and CBZ comics in the sidebar or the editor, local-first and private.",
-  "version": "0.0.9",
+  "version": "0.0.11",
   "publisher": "x7dl8p",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/x7dl8p/open-reader-vs"
   },
-  "homepage": "https://epub-web-reader.vercel.app/",
+  "homepage": "https://open-reader-web.vercel.app/",
   "bugs": {
     "url": "https://github.com/x7dl8p/open-reader-vs/issues"
   },

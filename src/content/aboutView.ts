@@ -2,11 +2,12 @@ import * as vscode from 'vscode';
 
 /** Mirrors the web app's src/lib/site.json — update both when a URL changes. */
 const LINKS = {
-  website: 'https://epub-web-reader.vercel.app/',
-  library: 'https://epub-web-reader.vercel.app/library',
-  philosophy: 'https://epub-web-reader.vercel.app/philosophy',
+  website: 'https://open-reader-web.vercel.app/',
+  library: 'https://open-reader-web.vercel.app/library',
+  philosophy: 'https://open-reader-web.vercel.app/philosophy',
   github: 'https://github.com/x7dl8p',
   repo: 'https://github.com/x7dl8p/open-reader-vs',
+  webRepo: 'https://github.com/x7dl8p/Open-Reader-Web',
   issues: 'https://github.com/x7dl8p/open-reader-vs/issues',
   releases: 'https://github.com/x7dl8p/open-reader-vs/releases',
 };
@@ -165,7 +166,7 @@ h1 {
     <div class="rule"><span>On the web</span></div>
     <section class="web">
       <p class="web-lead">
-        Open Reader also runs in the browser at <a href="${LINKS.website}">epub-web-reader.vercel.app</a> —
+        Open Reader also runs in the browser at <a href="${LINKS.website}">open-reader-web.vercel.app</a> —
         the same library, the same typography controls and the same reading themes, with your books kept in
         the browser's own storage. Nothing syncs between the two: each keeps its own shelf, locally.
       </p>
@@ -180,7 +181,7 @@ h1 {
     <section class="links">
       <a class="link" href="${LINKS.website}">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>
-        <span class="text"><span class="title">Open Reader on the web</span><br><span class="sub">epub-web-reader.vercel.app</span></span>
+        <span class="text"><span class="title">Open Reader on the web</span><br><span class="sub">open-reader-web.vercel.app</span></span>
         <svg class="chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
       </a>
       <a class="link" href="${LINKS.github}">

@@ -6,7 +6,7 @@
 
 The web version reads more: **EPUB · CBZ · Markdown · HTML · plain text**.
 
-Also available on the web: **[epub-web-reader.vercel.app](https://epub-web-reader.vercel.app/)**
+Also available on the web: **[open-reader-web.vercel.app](https://open-reader-web.vercel.app/)**
 
 ---
 
@@ -41,8 +41,10 @@ Typeface, size, rhythm, margins, and reading theme — every change lands in the
 
 ## Install
 
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=x7dl8p.open-reader), or grab the VSIX from [Releases](https://github.com/x7dl8p/open-reader-vs/releases/latest):
+
 ```
-code --install-extension open-reader-0.0.5.vsix
+code --install-extension open-reader-0.0.10.vsix
 ```
 
 Then open the **Open Reader** view in the activity bar. By default it scans your workspace folder for books — use **Add Folder** in the view's `···` menu to point it somewhere else.
@@ -71,9 +73,17 @@ EPUB and CBZ today. The format layer (`src/epub/formats.ts`) is a small registry
 ## Links
 
 - Developer — [github.com/x7dl8p](https://github.com/x7dl8p)
-- Web reader — [epub-web-reader.vercel.app](https://epub-web-reader.vercel.app/)
+- Web reader — [open-reader-web.vercel.app](https://open-reader-web.vercel.app/)
 
 ## Release Notes
+
+### 0.0.10
+
+First Marketplace release. Web links now point at open-reader-web.vercel.app.
+
+### 0.0.9
+
+Library follows the open workspace; the eye button browses library files. About page with web and source links. New icon.
 
 ### 0.0.5
 
