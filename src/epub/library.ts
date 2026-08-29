@@ -29,15 +29,32 @@ export class Library {
 
   constructor(private imageStorageDir: string) {}
 
-  getLibraryFolders(): string[] {
-    const configured = vscode.workspace.getConfiguration('openReader').get<string[]>('libraryFolders') ?? [];
-    if (configured.length > 0) {return configured;}
-
+  private workspaceFolders(): string[] {
     return (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
   }
 
+  private configuredFolders(): string[] {
+    return vscode.workspace.getConfiguration('openReader').get<string[]>('libraryFolders') ?? [];
+  }
+
+  /**
+   * The book list always follows the open workspace, so adding a library folder never
+   * moves the library off the project you are working in. Configured folders are only
+   * the fallback when no workspace is open.
+   */
+  getBookFolders(): string[] {
+    const workspace = this.workspaceFolders();
+    return workspace.length > 0 ? workspace : this.configuredFolders();
+  }
+
+  /** The eye/file view browses the folder you added, falling back to the workspace. */
+  getBrowseFolders(): string[] {
+    const configured = this.configuredFolders();
+    return configured.length > 0 ? configured : this.workspaceFolders();
+  }
+
   async listBooks(): Promise<LibraryBook[]> {
-    const folders = this.getLibraryFolders();
+    const folders = this.getBookFolders();
     const found: LibraryBook[] = [];
 
     for (const folder of folders) {

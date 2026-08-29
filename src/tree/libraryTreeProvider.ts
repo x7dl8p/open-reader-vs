@@ -69,7 +69,7 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
   }
 
   private async getFileRoots(): Promise<LibraryTreeElement[]> {
-    const folders = this.library.getLibraryFolders();
+    const folders = this.library.getBrowseFolders();
     if (folders.length === 0) {
       return [];
     }

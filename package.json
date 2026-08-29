@@ -1,12 +1,16 @@
 {
   "name": "open-reader",
   "displayName": "Open Reader",
-  "description": "Native e-book reader for VS Code (EPUB, CBZ)",
-  "version": "0.0.5",
+  "description": "Native e-book reader for VS Code — read EPUB books and CBZ comics in the sidebar or the editor, local-first and private.",
+  "version": "0.0.9",
   "publisher": "x7dl8p",
   "repository": {
     "type": "git",
     "url": "https://github.com/x7dl8p/open-reader-vs"
+  },
+  "homepage": "https://epub-web-reader.vercel.app/",
+  "bugs": {
+    "url": "https://github.com/x7dl8p/open-reader-vs/issues"
   },
   "icon": "resources/icon.png",
   "engines": {
@@ -196,7 +200,7 @@
             "type": "string"
           },
           "default": [],
-          "description": "Folders to scan for .epub files. When empty, the current workspace folder(s) are scanned."
+          "description": "Folders to scan for books (.epub, .cbz). When empty, the current workspace folder(s) are scanned."
         },
         "openReader.fontFamily": {
           "type": "string",
@@ -207,7 +211,7 @@
             "dyslexic"
           ],
           "default": "serif",
-          "description": "Font used in the Now Reading panel."
+          "description": "Font used in the Reader panel."
         },
         "openReader.fontSize": {
           "type": "string",
@@ -219,7 +223,7 @@
             "2xl"
           ],
           "default": "md",
-          "description": "Text size in the Now Reading panel."
+          "description": "Text size in the Reader panel."
         },
         "openReader.fontWeight": {
           "type": "string",
@@ -230,7 +234,7 @@
             "bold"
           ],
           "default": "normal",
-          "description": "Font weight in the Now Reading panel."
+          "description": "Font weight in the Reader panel."
         },
         "openReader.lineHeight": {
           "type": "string",
@@ -241,7 +245,7 @@
             "loose"
           ],
           "default": "relaxed",
-          "description": "Line height in the Now Reading panel."
+          "description": "Line height in the Reader panel."
         },
         "openReader.letterSpacing": {
           "type": "string",
@@ -252,7 +256,7 @@
             "wider"
           ],
           "default": "normal",
-          "description": "Letter spacing in the Now Reading panel."
+          "description": "Letter spacing in the Reader panel."
         },
         "openReader.textAlign": {
           "type": "string",
@@ -262,7 +266,7 @@
             "center"
           ],
           "default": "left",
-          "description": "Text alignment in the Now Reading panel."
+          "description": "Text alignment in the Reader panel."
         },
         "openReader.indent": {
           "type": "boolean",
@@ -272,7 +276,7 @@
         "openReader.showChapterNumbers": {
           "type": "boolean",
           "default": true,
-          "description": "Show the chapter position (e.g. 3/24) in the Now Reading toolbar."
+          "description": "Show the chapter position (e.g. 3/24) in the Reader toolbar."
         },
         "openReader.twoPageMode": {
           "type": "boolean",
@@ -284,24 +288,24 @@
           "default": 34,
           "minimum": 0,
           "maximum": 500,
-          "description": "Left/right padding (px) in the Now Reading panel."
+          "description": "Left/right padding (px) in the Reader panel."
         },
         "openReader.marginY": {
           "type": "number",
           "default": 11,
           "minimum": 0,
           "maximum": 500,
-          "description": "Top/bottom padding (px) in the Now Reading panel."
+          "description": "Top/bottom padding (px) in the Reader panel."
         },
         "openReader.bgColor": {
           "type": "string",
           "default": "",
-          "description": "Custom background color (hex) for the Now Reading panel. Empty follows the current VS Code theme."
+          "description": "Custom background color (hex) for the Reader panel. Empty follows the current VS Code theme."
         },
         "openReader.textColor": {
           "type": "string",
           "default": "",
-          "description": "Custom text color (hex) for the Now Reading panel. Empty follows the current VS Code theme."
+          "description": "Custom text color (hex) for the Reader panel. Empty follows the current VS Code theme."
         }
       }
     },

@@ -2,7 +2,9 @@
 
 # Open Reader
 
-**Read EPUB and CBZ books inside VS Code** — in the sidebar while you work, or full-width in the editor area. No browser, no external service, no data leaving your machine.
+**Read EPUB books and CBZ comics inside VS Code** — in the sidebar while you work, or full-width in the editor area. No browser, no external service, no data leaving your machine.
+
+The web version reads more: **EPUB · CBZ · Markdown · HTML · plain text**.
 
 Also available on the web: **[epub-web-reader.vercel.app](https://epub-web-reader.vercel.app/)**
 
