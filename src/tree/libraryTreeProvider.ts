@@ -18,6 +18,14 @@ export type LibraryViewMode = 'library' | 'files';
 const CONTEXT_KEY = 'openReader.fileView';
 const SKIPPED_DIRS = new Set(['node_modules']);
 
+/** Folders first, then files, each alphabetical — the order the Explorer uses. */
+function sortEntries(entries: LibraryTreeElement[]): LibraryTreeElement[] {
+  const byLabel = (a: vscode.TreeItem, b: vscode.TreeItem) => String(a.label).localeCompare(String(b.label));
+  const folders = entries.filter((entry) => entry instanceof FolderItem).sort(byLabel);
+  const files = entries.filter((entry) => !(entry instanceof FolderItem)).sort(byLabel);
+  return [...folders, ...files];
+}
+
 export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeElement> {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<LibraryTreeElement | undefined | void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -68,15 +76,11 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
     return book.meta.toc.map((chapter, index) => new ChapterItem(book.filePath, index, chapter.label, index === currentIndex));
   }
 
+  /** Every browse root's contents, merged flat — no per-root header nodes. */
   private async getFileRoots(): Promise<LibraryTreeElement[]> {
     const folders = this.library.getBrowseFolders();
-    if (folders.length === 0) {
-      return [];
-    }
-    if (folders.length === 1) {
-      return this.readFolder(folders[0]);
-    }
-    return folders.map((folder) => new FolderItem(folder, undefined, true));
+    const listings = await Promise.all(folders.map((folder) => this.readFolder(folder)));
+    return sortEntries(listings.flat());
   }
 
   private async readFolder(dirPath: string): Promise<LibraryTreeElement[]> {
@@ -99,9 +103,6 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
       }
     }
 
-    const byLabel = (a: vscode.TreeItem, b: vscode.TreeItem) => String(a.label).localeCompare(String(b.label));
-    folders.sort(byLabel);
-    files.sort(byLabel);
-    return [...folders, ...files];
+    return sortEntries([...folders, ...files]);
   }
 }

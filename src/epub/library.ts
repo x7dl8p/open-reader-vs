@@ -38,19 +38,21 @@ export class Library {
   }
 
   /**
-   * The book list always follows the open workspace, so adding a library folder never
-   * moves the library off the project you are working in. Configured folders are only
-   * the fallback when no workspace is open.
+   * Books come from the workspace *and* every folder added with "Add Library Folder",
+   * so a book you add is always readable no matter where it lives on disk.
    */
   getBookFolders(): string[] {
-    const workspace = this.workspaceFolders();
-    return workspace.length > 0 ? workspace : this.configuredFolders();
+    return [...new Set([...this.workspaceFolders(), ...this.configuredFolders()])];
   }
 
-  /** The eye/file view browses the folder you added, falling back to the workspace. */
+  /**
+   * The eye/file view browses the project you have open — the same tree the Explorer
+   * shows. Added folders feed the book list, not this. With no workspace open there is
+   * nothing to browse, so the added folders stand in.
+   */
   getBrowseFolders(): string[] {
-    const configured = this.configuredFolders();
-    return configured.length > 0 ? configured : this.workspaceFolders();
+    const workspace = this.workspaceFolders();
+    return workspace.length > 0 ? workspace : this.configuredFolders();
   }
 
   async listBooks(): Promise<LibraryBook[]> {

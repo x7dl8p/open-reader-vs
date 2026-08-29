@@ -2,7 +2,7 @@
   "name": "open-reader",
   "displayName": "Open Reader",
   "description": "Native e-book reader for VS Code — read EPUB books and CBZ comics in the sidebar or the editor, local-first and private.",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "publisher": "x7dl8p",
   "license": "MIT",
   "repository": {
@@ -57,7 +57,7 @@
     "viewsWelcome": [
       {
         "view": "openReaderLibrary",
-        "contents": "No books found.\n[Add Library Folder](command:openReader.chooseLibraryFolder)\nBy default the current workspace folder is scanned for .epub & .cbz files."
+        "contents": "No books found.\nThe workspace is scanned for .epub & .cbz files. Point at a folder of books to add them to your library.\n[Add Library Folder](command:openReader.chooseLibraryFolder)\nThe eye button in the title bar switches to browsing the project's files."
       }
     ],
     "commands": [
@@ -82,13 +82,13 @@
       {
         "command": "openReader.showFiles",
         "title": "Browse Library Files",
-        "icon": "$(eye)",
+        "icon": "$(eye-closed)",
         "category": "Reader"
       },
       {
         "command": "openReader.showLibrary",
         "title": "Back to Book List",
-        "icon": "$(eye-closed)",
+        "icon": "$(eye)",
         "category": "Reader"
       },
       {
@@ -201,7 +201,7 @@
             "type": "string"
           },
           "default": [],
-          "description": "Folders to scan for books (.epub, .cbz). When empty, the current workspace folder(s) are scanned."
+          "description": "Extra folders of books to add to the library, scanned alongside the open workspace. The eye button browses the workspace's own files."
         },
         "openReader.fontFamily": {
           "type": "string",
