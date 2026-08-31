@@ -31,9 +31,67 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private mode: LibraryViewMode = 'library';
+  /** Items handed out most recently, so getParent and reveal can find them again. */
+  private bookItems = new Map<string, BookItem>();
+  private chapterItems = new Map<string, ChapterItem>();
+  private view?: vscode.TreeView<LibraryTreeElement>;
+  private pendingReveal?: { filePath: string; index: number };
+  private revealing = false;
 
   constructor(private library: Library, private progress: ProgressStore) {
     void vscode.commands.executeCommand('setContext', CONTEXT_KEY, false);
+  }
+
+  /** Required for TreeView.reveal to walk up from a chapter to its book. */
+  getParent(element: LibraryTreeElement): LibraryTreeElement | undefined {
+    return element instanceof ChapterItem ? this.bookItems.get(element.filePath) : undefined;
+  }
+
+  /** The tree cannot reveal anything until the view it belongs to is known. */
+  attachView(view: vscode.TreeView<LibraryTreeElement>): void {
+    this.view = view;
+  }
+
+  /**
+   * Move the reading marker to a chapter and select it.
+   *
+   * The chapter's tree item may not exist yet — on a restored session the reader renders
+   * before the tree has been asked for anything. So the target is remembered and applied
+   * again as soon as the items it needs are produced.
+   */
+  markReading(filePath: string, index: number): void {
+    this.pendingReveal = { filePath, index };
+    this.refresh();
+    void this.applyPendingReveal();
+  }
+
+  private async applyPendingReveal(): Promise<void> {
+    const target = this.pendingReveal;
+    if (!target || this.revealing || !this.view?.visible) {
+      return;
+    }
+
+    const book = this.bookItems.get(target.filePath);
+    if (!book) {
+      return; // getBooks will call back once the library has loaded.
+    }
+
+    this.revealing = true;
+    try {
+      // Expanding the book is what causes its chapters to be created.
+      await this.view.reveal(book, { expand: true, select: false, focus: false });
+
+      const chapter = this.chapterItems.get(`${target.filePath}::${target.index}`);
+      if (chapter) {
+        this.pendingReveal = undefined;
+        await this.view.reveal(chapter, { select: true, focus: false });
+      }
+    } catch {
+      // The book is not in the tree right now — the refresh above has already moved the
+      // marker, so the selection is the only thing lost.
+    } finally {
+      this.revealing = false;
+    }
   }
 
   refresh(): void {
@@ -65,15 +123,27 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
 
   private async getBooks(): Promise<BookItem[]> {
     const books = await this.library.listBooks();
-    return books.map(
+    const items = books.map(
       (book) => new BookItem(book, this.progress.get(book.filePath), vscode.TreeItemCollapsibleState.Collapsed)
     );
+
+    this.bookItems = new Map(items.map((item) => [item.book.filePath, item]));
+    void this.applyPendingReveal();
+    return items;
   }
 
   private getChapters(bookItem: BookItem): ChapterItem[] {
     const { book } = bookItem;
     const currentIndex = this.progress.get(book.filePath);
-    return book.meta.toc.map((chapter, index) => new ChapterItem(book.filePath, index, chapter.label, index === currentIndex));
+    const items = book.meta.toc.map(
+      (chapter, index) => new ChapterItem(book.filePath, index, chapter.label, index === currentIndex)
+    );
+
+    for (const item of items) {
+      this.chapterItems.set(`${book.filePath}::${item.index}`, item);
+    }
+    void this.applyPendingReveal();
+    return items;
   }
 
   /** Every browse root's contents, merged flat — no per-root header nodes. */

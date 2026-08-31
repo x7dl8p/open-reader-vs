@@ -89,11 +89,27 @@ img { max-width: 100%; height: auto; border-radius: 4px; }
     }
 
     const maxScroll = () => Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const restore = () => { if (initialRatio > 0) { window.scrollTo(0, initialRatio * maxScroll()); } };
+    // A chapter with no saved position starts at the top: the webview keeps its old
+    // offset across a re-render, so stepping to the next chapter would otherwise land
+    // at the bottom of it.
+    const restore = () => window.scrollTo(0, initialRatio > 0 ? initialRatio * maxScroll() : 0);
 
     restore();
-    // Images settle after load and change the page height, so place the reader again.
-    window.addEventListener('load', () => { if (!touched) { restore(); } });
+    // The host restores its own remembered offset after this script first runs, and
+    // images settle later still — so hold the position briefly rather than placing it
+    // once, until the reader takes over by scrolling.
+    let settleUntil = Date.now() + 400;
+    const hold = () => {
+      if (touched || Date.now() > settleUntil) { return; }
+      restore();
+      requestAnimationFrame(hold);
+    };
+    requestAnimationFrame(hold);
+    window.addEventListener('load', () => {
+      if (touched) { return; }
+      settleUntil = Date.now() + 400;
+      requestAnimationFrame(hold);
+    });
 
     let reportTimer;
     window.addEventListener('scroll', () => {

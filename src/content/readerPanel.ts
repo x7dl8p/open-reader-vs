@@ -27,7 +27,7 @@ export class ReaderPanel {
     private scroll: ScrollStore,
     private imagesRoot: vscode.Uri,
     private iconPath: vscode.Uri,
-    private onDidRead: () => void
+    private onDidRead: (filePath: string, index: number) => void
   ) {}
 
   get isOpen(): boolean {
@@ -93,7 +93,7 @@ export class ReaderPanel {
       await this.step(1);
     }
     if (msg.type === 'scroll' && this.current) {
-      await this.scroll.set(this.current.filePath, this.current.index, msg.ratio);
+      this.scroll.set(this.current.filePath, this.current.index, msg.ratio);
     }
   }
 
@@ -115,6 +115,6 @@ export class ReaderPanel {
     );
 
     await this.progress.set(filePath, index);
-    this.onDidRead();
+    this.onDidRead(filePath, index);
   }
 }

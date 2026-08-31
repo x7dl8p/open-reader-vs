@@ -8,6 +8,9 @@ export class BookItem extends vscode.TreeItem {
     collapsibleState: vscode.TreeItemCollapsibleState
   ) {
     super(book.meta.title, collapsibleState);
+    // A stable id keeps expansion and selection across refreshes, and lets reveal
+    // find the node again after the tree has been rebuilt.
+    this.id = book.filePath;
     this.contextValue = 'book';
     this.iconPath = new vscode.ThemeIcon(book.filePath.toLowerCase().endsWith('.cbz') ? 'file-media' : 'book');
     this.resourceUri = vscode.Uri.file(book.filePath);

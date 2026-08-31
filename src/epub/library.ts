@@ -42,7 +42,7 @@ export class Library {
    * so a book you add is always readable no matter where it lives on disk.
    */
   getBookFolders(): string[] {
-    return [...new Set([...this.workspaceFolders(), ...this.configuredFolders()])];
+    return dedupeFolders([...this.workspaceFolders(), ...this.configuredFolders()]);
   }
 
   /**
@@ -58,10 +58,17 @@ export class Library {
   async listBooks(): Promise<LibraryBook[]> {
     const folders = this.getBookFolders();
     const found: LibraryBook[] = [];
+    const seen = new Set<string>();
 
     for (const folder of folders) {
       const files = await findBookFiles(folder);
       for (const filePath of files) {
+        // Two roots can reach the same file through different paths or a symlink;
+        // the library must list it once.
+        const identity = await realPath(filePath);
+        if (seen.has(identity)) {continue;}
+        seen.add(identity);
+
         try {
           const entry = await this.loadEntry(filePath);
           found.push({ filePath, fileName: path.basename(filePath), meta: entry.meta });
@@ -117,6 +124,26 @@ export class Library {
   invalidate(filePath: string) {
     this.cache.delete(filePath);
   }
+}
+
+/** Resolve symlinks so the same book reached two ways compares equal. */
+async function realPath(target: string): Promise<string> {
+  try {
+    return await fs.realpath(target);
+  } catch {
+    return path.resolve(target);
+  }
+}
+
+/**
+ * Normalise the roots and drop any folder already covered by another — scanning both
+ * `/books` and `/books/epub` would otherwise find every book inside twice.
+ */
+function dedupeFolders(folders: string[]): string[] {
+  const normalized = [...new Set(folders.map((folder) => path.resolve(folder)))];
+  return normalized.filter(
+    (folder) => !normalized.some((other) => other !== folder && folder.startsWith(other + path.sep))
+  );
 }
 
 async function findBookFiles(root: string, depth = 3): Promise<string[]> {

@@ -2,7 +2,7 @@
   "name": "open-reader",
   "displayName": "Open Reader",
   "description": "Native e-book reader for VS Code — read EPUB books and CBZ comics in the sidebar or the editor, local-first and private.",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "publisher": "x7dl8p",
   "license": "MIT",
   "repository": {
@@ -273,6 +273,11 @@
           "type": "boolean",
           "default": true,
           "description": "Indent the first line of each paragraph instead of spacing paragraphs apart."
+        },
+        "openReader.restoreLastBook": {
+          "type": "boolean",
+          "default": true,
+          "description": "Reopen the last book and chapter you were reading when the window starts."
         },
         "openReader.showChapterNumbers": {
           "type": "boolean",

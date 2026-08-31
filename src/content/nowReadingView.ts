@@ -19,8 +19,21 @@ export class NowReadingViewProvider implements vscode.WebviewViewProvider {
     private library: Library,
     private progress: ProgressStore,
     private scroll: ScrollStore,
-    private imagesRoot: vscode.Uri
+    private imagesRoot: vscode.Uri,
+    private onDidRead: (filePath: string, index: number) => void
   ) {}
+
+  /**
+   * Point the view at a book without opening or focusing anything — used to restore the
+   * last session. Renders straight away if the view is already up; otherwise the chapter
+   * appears when the user opens the view themselves.
+   */
+  restore(filePath: string, index: number): void {
+    this.current = { filePath, index };
+    if (this.view) {
+      void this.render(filePath, index);
+    }
+  }
 
   resolveWebviewView(webviewView: vscode.WebviewView): void {
     this.view = webviewView;
@@ -58,7 +71,7 @@ export class NowReadingViewProvider implements vscode.WebviewViewProvider {
       await this.step(1);
     }
     if (msg.type === 'scroll' && this.current) {
-      await this.scroll.set(this.current.filePath, this.current.index, msg.ratio);
+      this.scroll.set(this.current.filePath, this.current.index, msg.ratio);
     }
   }
 
@@ -75,8 +88,21 @@ export class NowReadingViewProvider implements vscode.WebviewViewProvider {
     if (!this.view) {
       return;
     }
-    const [meta, chapter] = await Promise.all([this.library.getMeta(filePath), this.library.getChapter(filePath, index)]);
+
+    let meta;
+    let chapter;
+    try {
+      [meta, chapter] = await Promise.all([this.library.getMeta(filePath), this.library.getChapter(filePath, index)]);
+    } catch {
+      // The restored book has been moved or deleted since it was last read.
+      this.current = undefined;
+      this.view.webview.html = renderEmptyHtml();
+      return;
+    }
+
     await this.progress.set(filePath, index);
+    // Without this the "reading" marker in the Library tree stays on the previous chapter.
+    this.onDidRead(filePath, index);
     this.view.webview.html = renderChapterHtml(
       this.view.webview,
       meta,
