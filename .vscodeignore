@@ -20,3 +20,5 @@ media/**/*.map
 pnpm-lock.yaml
 pnpm-workspace.yaml
 .npmrc
+scripts/**
+*.vsix

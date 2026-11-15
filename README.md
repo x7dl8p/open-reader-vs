@@ -91,7 +91,7 @@ Reader Settings now has a tab for each reading surface, so the editor reader and
 Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=x7dl8p.open-reader), from [Open VSX](https://open-vsx.org/extension/x7dl8p/open-reader) for Cursor, Windsurf, VSCodium and other forks, or grab the VSIX from [Releases](https://github.com/x7dl8p/open-reader-vs/releases/latest):
 
 ```
-code --install-extension open-reader-0.1.0.vsix
+code --install-extension open-reader-0.2.0.vsix
 ```
 
 Then open the **Open Reader** view in the activity bar. It scans your workspace for books. Use **Add Folder** in the view's `···` menu to add another folder, or **Browse Sources** to find web novels.
@@ -132,6 +132,16 @@ Also built with [cheerio](https://github.com/cheeriojs/cheerio), [htmlparser2](h
 
 <img src="public/Screen-Shots/about.png" alt="The Credits section of the About page" width="900" height="506">
 
+## Releasing
+
+Publishing needs `VSCE_PAT` (Marketplace) and `OVSX_PAT` (Open VSX), either exported or in the gitignored `.env`:
+
+```
+pnpm run release              # package, push, tag, GitHub release, both stores
+pnpm run publish:marketplace  # VS Code Marketplace only
+pnpm run publish:openvsx      # Open VSX only
+```
+
 ## Links
 
 - Developer: [github.com/x7dl8p](https://github.com/x7dl8p)
@@ -139,7 +149,7 @@ Also built with [cheerio](https://github.com/cheeriojs/cheerio), [htmlparser2](h
 
 ## Release Notes
 
-### 0.1.0
+### 0.2.0
 
 Web novels. Browse Sources installs LNReader sources and browses their novels; add novels to your library; read marks with faded read chapters, bookmarks, selection actions and chapter downloads, in the Browse page and the Library sidebar; import from a link; separate settings for the editor reader and the sidebar Reader; credits on the About page.
 

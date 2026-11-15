@@ -2,7 +2,7 @@
   "name": "open-reader",
   "displayName": "Open Reader",
   "description": "Native e-book reader for VS Code. Read EPUB books, CBZ comics and web novels from LNReader sources, in the sidebar or the editor.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "x7dl8p",
   "license": "MIT",
   "repository": {
@@ -627,7 +627,10 @@
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "release": "bash scripts/release.sh",
+    "publish:marketplace": "bash scripts/publish-marketplace.sh",
+    "publish:openvsx": "bash scripts/publish-openvsx.sh"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -642,6 +645,7 @@
     "esbuild": "^0.28.1",
     "eslint": "^10.5.0",
     "npm-run-all": "^4.1.5",
+    "ovsx": "1.4.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1"
   },
