@@ -1,8 +1,8 @@
 {
   "name": "open-reader",
   "displayName": "Open Reader",
-  "description": "Native e-book reader for VS Code — read EPUB books and CBZ comics in the sidebar or the editor, local-first and private.",
-  "version": "0.0.13",
+  "description": "Native e-book reader for VS Code. Read EPUB books, CBZ comics and web novels from LNReader sources, in the sidebar or the editor.",
+  "version": "0.1.0",
   "publisher": "x7dl8p",
   "license": "MIT",
   "repository": {
@@ -57,7 +57,7 @@
     "viewsWelcome": [
       {
         "view": "openReaderLibrary",
-        "contents": "No books found.\nThe workspace is scanned for .epub & .cbz files. Point at a folder of books to add them to your library.\n[Add Library Folder](command:openReader.chooseLibraryFolder)\nThe eye button in the title bar switches to browsing the project's files."
+        "contents": "No books found.\nThe workspace is scanned for .epub & .cbz files. Point at a folder of books to add them to your library.\n[Add Library Folder](command:openReader.chooseLibraryFolder)\nOr find web novels from LNReader sources, or import one from a link.\n[Browse Sources](command:openReader.browseSources)\n[Import from Link](command:openReader.importFromLink)\nThe eye button in the title bar switches to browsing the project's files."
       }
     ],
     "commands": [
@@ -131,10 +131,122 @@
         "title": "About",
         "icon": "$(info)",
         "category": "Reader"
+      },
+      {
+        "command": "openReader.browseSources",
+        "title": "Browse Sources",
+        "icon": "$(extensions)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.importFromLink",
+        "title": "Import from Link",
+        "icon": "$(link)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.showInSources",
+        "title": "Show in Browse Sources",
+        "icon": "$(globe)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.refreshNovel",
+        "title": "Check for New Chapters",
+        "icon": "$(refresh)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.removeFromLibrary",
+        "title": "Remove from Library",
+        "icon": "$(trash)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.markRead",
+        "title": "Mark as Read",
+        "icon": "$(check)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.markUnread",
+        "title": "Mark as Unread",
+        "icon": "$(circle-large-outline)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.markPreviousRead",
+        "title": "Mark Previous as Read",
+        "icon": "$(check-all)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.bookmark",
+        "title": "Bookmark",
+        "icon": "$(bookmark)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.removeBookmark",
+        "title": "Remove Bookmark",
+        "icon": "$(bookmark)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.downloadChapters",
+        "title": "Download",
+        "icon": "$(cloud-download)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.deleteDownloads",
+        "title": "Delete Download",
+        "icon": "$(trash)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.markBookRead",
+        "title": "Mark All Chapters as Read",
+        "icon": "$(check-all)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.markBookUnread",
+        "title": "Mark All Chapters as Unread",
+        "icon": "$(circle-large-outline)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.downloadBook",
+        "title": "Download Chapters…",
+        "icon": "$(cloud-download)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.deleteBookDownloads",
+        "title": "Delete All Downloads",
+        "icon": "$(trash)",
+        "category": "Reader"
+      },
+      {
+        "command": "openReader.cancelDownloads",
+        "title": "Cancel Downloads",
+        "icon": "$(close)",
+        "category": "Reader"
       }
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "openReader.browseSources",
+          "when": "view == openReaderLibrary",
+          "group": "navigation@-2"
+        },
+        {
+          "command": "openReader.importFromLink",
+          "when": "view == openReaderLibrary",
+          "group": "navigation@-1"
+        },
         {
           "command": "openReader.showFiles",
           "when": "view == openReaderLibrary && !openReader.fileView",
@@ -182,13 +294,163 @@
       "view/item/context": [
         {
           "command": "openReader.openInNowReading",
-          "when": "view == openReaderLibrary && viewItem == chapter",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/",
           "group": "inline@1"
         },
         {
           "command": "openReader.openChapter",
-          "when": "view == openReaderLibrary && viewItem == chapter",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/",
           "group": "inline@2"
+        },
+        {
+          "command": "openReader.refreshNovel",
+          "when": "view == openReaderLibrary && viewItem == onlineBook",
+          "group": "inline@1"
+        },
+        {
+          "command": "openReader.showInSources",
+          "when": "view == openReaderLibrary && viewItem == onlineBook",
+          "group": "online@1"
+        },
+        {
+          "command": "openReader.refreshNovel",
+          "when": "view == openReaderLibrary && viewItem == onlineBook",
+          "group": "online@2"
+        },
+        {
+          "command": "openReader.removeFromLibrary",
+          "when": "view == openReaderLibrary && viewItem == onlineBook",
+          "group": "online@3"
+        },
+        {
+          "command": "openReader.markRead",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/ && viewItem =~ /\\bunread\\b/",
+          "group": "1_read@1"
+        },
+        {
+          "command": "openReader.markUnread",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/ && viewItem =~ /\\bread\\b/",
+          "group": "1_read@2"
+        },
+        {
+          "command": "openReader.markPreviousRead",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/",
+          "group": "1_read@3"
+        },
+        {
+          "command": "openReader.bookmark",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/ && !(viewItem =~ /\\bbookmarked\\b/)",
+          "group": "2_bookmark@1"
+        },
+        {
+          "command": "openReader.removeBookmark",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/ && viewItem =~ /\\bbookmarked\\b/",
+          "group": "2_bookmark@1"
+        },
+        {
+          "command": "openReader.downloadChapters",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/ && viewItem =~ /\\bonline\\b/ && !(viewItem =~ /\\bdownloaded\\b/)",
+          "group": "3_download@1"
+        },
+        {
+          "command": "openReader.deleteDownloads",
+          "when": "view == openReaderLibrary && viewItem =~ /^chapter\\b/ && viewItem =~ /\\bdownloaded\\b/",
+          "group": "3_download@2"
+        },
+        {
+          "command": "openReader.downloadBook",
+          "when": "view == openReaderLibrary && viewItem == onlineBook",
+          "group": "inline@0"
+        },
+        {
+          "command": "openReader.markBookRead",
+          "when": "view == openReaderLibrary && viewItem =~ /^(book|onlineBook)$/",
+          "group": "1_read@1"
+        },
+        {
+          "command": "openReader.markBookUnread",
+          "when": "view == openReaderLibrary && viewItem =~ /^(book|onlineBook)$/",
+          "group": "1_read@2"
+        },
+        {
+          "command": "openReader.downloadBook",
+          "when": "view == openReaderLibrary && viewItem == onlineBook",
+          "group": "3_download@1"
+        },
+        {
+          "command": "openReader.deleteBookDownloads",
+          "when": "view == openReaderLibrary && viewItem == onlineBook",
+          "group": "3_download@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "openReader.showInSources",
+          "when": "false"
+        },
+        {
+          "command": "openReader.refreshNovel",
+          "when": "false"
+        },
+        {
+          "command": "openReader.removeFromLibrary",
+          "when": "false"
+        },
+        {
+          "command": "openReader.openChapter",
+          "when": "false"
+        },
+        {
+          "command": "openReader.openInNowReading",
+          "when": "false"
+        },
+        {
+          "command": "openReader.openToc",
+          "when": "false"
+        },
+        {
+          "command": "openReader.markRead",
+          "when": "false"
+        },
+        {
+          "command": "openReader.markUnread",
+          "when": "false"
+        },
+        {
+          "command": "openReader.markPreviousRead",
+          "when": "false"
+        },
+        {
+          "command": "openReader.bookmark",
+          "when": "false"
+        },
+        {
+          "command": "openReader.removeBookmark",
+          "when": "false"
+        },
+        {
+          "command": "openReader.downloadChapters",
+          "when": "false"
+        },
+        {
+          "command": "openReader.deleteDownloads",
+          "when": "false"
+        },
+        {
+          "command": "openReader.markBookRead",
+          "when": "false"
+        },
+        {
+          "command": "openReader.markBookUnread",
+          "when": "false"
+        },
+        {
+          "command": "openReader.downloadBook",
+          "when": "false"
+        },
+        {
+          "command": "openReader.deleteBookDownloads",
+          "when": "false"
         }
       ]
     },
@@ -312,6 +574,23 @@
           "type": "string",
           "default": "",
           "description": "Custom text color (hex) for the Reader panel. Empty follows the current VS Code theme."
+        },
+        "openReader.sourceRepositories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^https?://.*plugins\\.min\\.json$",
+            "patternErrorMessage": "A repository is the URL of a plugins.min.json file."
+          },
+          "default": [
+            "https://raw.githubusercontent.com/LNReader/lnreader-plugins/plugins/v3.0.0/.dist/plugins.min.json"
+          ],
+          "markdownDescription": "LNReader plugin repositories to browse sources from (URLs of `plugins.min.json` files). Sources are third-party scrapers that run inside VS Code; only add repositories you trust."
+        },
+        "openReader.sidePanel": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "Reader settings for the sidebar **Reader** view, edited from the *Side Panel* tab of Reader Settings. Uses the same keys as the main `openReader.*` reader settings, which style the editor-area reader."
         }
       }
     },
@@ -354,7 +633,9 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
     "@types/turndown": "^5.0.6",
+    "@types/urlencode": "1.1.4",
     "@types/vscode": "1.107.0",
+    "@vscode/codicons": "0.0.36",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
     "@vscode/vsce": "^3.9.2",
@@ -369,7 +650,23 @@
     "serialize-javascript": "^7.0.6"
   },
   "dependencies": {
+    "@noble/ciphers": "1.3.0",
+    "cheerio": "1.0.0-rc.12",
+    "dayjs": "1.11.13",
+    "htmlparser2": "8.0.2",
     "jszip": "^3.10.1",
-    "turndown": "^7.2.4"
-  }
+    "protobufjs": "7.5.4",
+    "turndown": "^7.2.4",
+    "urlencode": "2.0.0"
+  },
+  "keywords": [
+    "cbz",
+    "ebook",
+    "epub",
+    "light novel",
+    "lnreader",
+    "novel",
+    "reader",
+    "web novel"
+  ]
 }

@@ -1,4 +1,16 @@
 const esbuild = require("esbuild");
+const fs = require("fs");
+const path = require("path");
+
+/** Webviews cannot reach node_modules once packaged, so the codicon font ships in dist/. */
+function copyCodicons() {
+	const from = path.join(__dirname, 'node_modules', '@vscode', 'codicons', 'dist');
+	const to = path.join(__dirname, 'dist', 'codicons');
+	fs.mkdirSync(to, { recursive: true });
+	for (const file of ['codicon.css', 'codicon.ttf']) {
+		fs.copyFileSync(path.join(from, file), path.join(to, file));
+	}
+}
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
@@ -24,6 +36,7 @@ const esbuildProblemMatcherPlugin = {
 };
 
 async function main() {
+	copyCodicons();
 	const ctx = await esbuild.context({
 		entryPoints: [
 			'src/extension.ts'

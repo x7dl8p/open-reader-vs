@@ -3,28 +3,31 @@ import type { Library } from '../epub/library';
 import type { ProgressStore } from '../epub/progress';
 import type { ScrollStore } from '../epub/scrollStore';
 import { loadReaderPrefs, type ReaderPrefs } from '../epub/readerPrefs';
+import { FINISHED_RATIO } from '../epub/readStore';
 import { prefsToCssVars } from './readerTheme';
 import { renderChapterHtml, renderEmptyHtml, renderLoadingHtml } from './readerTemplate';
 
-type WebviewMessage = { type: 'prev' | 'next' } | { type: 'scroll'; ratio: number };
+type WebviewMessage = { type: 'prev' | 'next' | 'finished' } | { type: 'scroll'; ratio: number };
 
 export class NowReadingViewProvider implements vscode.WebviewViewProvider {
   static readonly viewType = 'openReaderNowReading';
 
   private view?: vscode.WebviewView;
   private current?: { filePath: string; index: number };
-  private prefs: ReaderPrefs = loadReaderPrefs();
+  private prefs: ReaderPrefs = loadReaderPrefs('side');
 
   constructor(
     private library: Library,
     private progress: ProgressStore,
     private scroll: ScrollStore,
     private imagesRoot: vscode.Uri,
-    private onDidRead: (filePath: string, index: number) => void
+    private onDidRead: (filePath: string, index: number) => void,
+    /** The reader reached the end of a chapter, or moved on past it. */
+    private onFinished: (filePath: string, index: number) => void = () => {}
   ) {}
 
   /**
-   * Point the view at a book without opening or focusing anything — used to restore the
+   * Point the view at a book without opening or focusing anything, used to restore the
    * last session. Renders straight away if the view is already up; otherwise the chapter
    * appears when the user opens the view themselves.
    */
@@ -68,10 +71,19 @@ export class NowReadingViewProvider implements vscode.WebviewViewProvider {
       await this.step(-1);
     }
     if (msg.type === 'next') {
+      if (this.current) {
+        this.onFinished(this.current.filePath, this.current.index);
+      }
       await this.step(1);
+    }
+    if (msg.type === 'finished' && this.current) {
+      this.onFinished(this.current.filePath, this.current.index);
     }
     if (msg.type === 'scroll' && this.current) {
       this.scroll.set(this.current.filePath, this.current.index, msg.ratio);
+      if (msg.ratio >= FINISHED_RATIO) {
+        this.onFinished(this.current.filePath, this.current.index);
+      }
     }
   }
 

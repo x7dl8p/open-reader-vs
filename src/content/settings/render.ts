@@ -1,14 +1,22 @@
-import { PREBUILT_THEMES, type ReaderPrefs } from '../../epub/readerPrefs';
+import { PREBUILT_THEMES, type ReaderPrefs, type ReaderSurface } from '../../epub/readerPrefs';
 import { CARDS, type Card, type Field } from './fields';
 import { settingsStyles } from './styles';
 import { settingsScript } from './script';
 
 const SAMPLE = [
   'It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.',
-  'However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families.',
+  'However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered as the rightful property of some one or other of their daughters.',
+  '“My dear Mr. Bennet,” said his lady to him one day, “have you heard that Netherfield Park is let at last?”',
+  'Mr. Bennet replied that he had not.',
+  '“But it is,” returned she; “for Mrs. Long has just been here, and she told me all about it.”',
 ];
 
-export function renderSettingsHtml(prefs: ReaderPrefs): string {
+const TABS: Array<{ surface: ReaderSurface; label: string; hint: string }> = [
+  { surface: 'main', label: 'Main Area', hint: 'The reader that opens in the editor area' },
+  { surface: 'side', label: 'Side Panel', hint: 'The Reader view in the Open-Reader sidebar' },
+];
+
+export function renderSettingsHtml(prefs: Record<ReaderSurface, ReaderPrefs>, activeTab: ReaderSurface): string {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -19,30 +27,53 @@ export function renderSettingsHtml(prefs: ReaderPrefs): string {
 <body>
   <div class="head">
     <h1>Reader Settings</h1>
-    <span class="sub">Applies live to the Now Reading panel</span>
-    <button class="ghost" id="reset">Reset to defaults</button>
+    <div class="tabs" role="tablist">
+      ${TABS.map(
+        (tab) =>
+          `<button role="tab" class="tab${tab.surface === activeTab ? ' on' : ''}" data-tab="${tab.surface}" title="${tab.hint}">${tab.label}</button>`
+      ).join('')}
+    </div>
+    <span class="spacer"></span>
+    <button class="ghost" id="reset">Reset this tab</button>
   </div>
 
-  <div class="layout">
-    <div class="cards">
-      ${CARDS.map((card) => renderCard(card, prefs)).join('\n')}
-      ${renderThemeCard(prefs)}
-    </div>
+  ${renderMainTab(prefs.main, activeTab === 'main')}
+  ${renderSideTab(prefs.side, activeTab === 'side')}
 
-    <div class="preview-wrap">
-      <div class="preview-label">Live Preview</div>
-      <div id="preview">
-        <div class="cols">
-          <h3>Chapter One</h3>
-          ${SAMPLE.map((line) => `<p>${line}</p>`).join('\n')}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>${settingsScript(prefs)}</script>
+  <script>${settingsScript(prefs, activeTab)}</script>
 </body>
 </html>`;
+}
+
+/** Editor reader: a full-width preview on top, the controls below it. */
+function renderMainTab(prefs: ReaderPrefs, active: boolean): string {
+  return `<section class="tab-panel main" data-surface="main"${active ? '' : ' hidden'}>
+    <div class="preview-label">Live Preview <span class="sub">(the editor-area reader)</span></div>
+    <div class="preview main-preview">${previewBody()}</div>
+    <div class="cards">${renderCards(prefs)}</div>
+  </section>`;
+}
+
+/** Sidebar reader: controls on the left, a narrow preview you can resize on the right. */
+function renderSideTab(prefs: ReaderPrefs, active: boolean): string {
+  return `<section class="tab-panel side" data-surface="side"${active ? '' : ' hidden'}>
+    <div class="side-layout">
+      <div class="cards stacked">${renderCards(prefs)}</div>
+      <div class="splitter" title="Drag to resize the preview"></div>
+      <div class="side-preview-wrap">
+        <div class="preview-label">Live Preview <span class="sub width"></span></div>
+        <div class="preview side-preview">${previewBody()}</div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function previewBody(): string {
+  return `<div class="cols"><h3>Chapter One</h3>${SAMPLE.map((line) => `<p>${line}</p>`).join('')}</div>`;
+}
+
+function renderCards(prefs: ReaderPrefs): string {
+  return [...CARDS.map((card) => renderCard(card, prefs)), renderThemeCard(prefs)].join('\n');
 }
 
 function renderCard(card: Card, prefs: ReaderPrefs): string {
@@ -97,8 +128,8 @@ function renderThemeCard(prefs: ReaderPrefs): string {
     <h2>Reading Theme</h2>
     <div class="themes">${swatches}</div>
     <div class="colors">
-      <label>Background <input type="color" id="bgColor" value="${prefs.bgColor || '#ffffff'}"></label>
-      <label>Text <input type="color" id="textColor" value="${prefs.textColor || '#000000'}"></label>
+      <label>Background <input type="color" data-color="bgColor" value="${prefs.bgColor || '#ffffff'}"></label>
+      <label>Text <input type="color" data-color="textColor" value="${prefs.textColor || '#000000'}"></label>
     </div>
   </section>`;
 }

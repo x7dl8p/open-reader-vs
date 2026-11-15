@@ -22,7 +22,7 @@ export function renderChapterHtml(
 <html>
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: data:; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
 <style>
 :root { color-scheme: light dark; ${vars} }
 * { box-sizing: border-box; }
@@ -67,7 +67,7 @@ img { max-width: 100%; height: auto; border-radius: 4px; }
   </div>
   <div class="nav">
     <button id="prev" ${atStart ? 'disabled' : ''}>&larr; Prev</button>
-    <span class="position">${escapeHtml(meta.title)} — ${index + 1}/${meta.totalChapters}</span>
+    <span class="position">${escapeHtml(meta.title)} · ${index + 1}/${meta.totalChapters}</span>
     <button id="next" ${atEnd ? 'disabled' : ''}>Next &rarr;</button>
   </div>
   <script>
@@ -96,7 +96,7 @@ img { max-width: 100%; height: auto; border-radius: 4px; }
 
     restore();
     // The host restores its own remembered offset after this script first runs, and
-    // images settle later still — so hold the position briefly rather than placing it
+    // images settle later still, so hold the position briefly rather than placing it
     // once, until the reader takes over by scrolling.
     let settleUntil = Date.now() + 400;
     const hold = () => {
@@ -109,6 +109,15 @@ img { max-width: 100%; height: auto; border-radius: 4px; }
       if (touched) { return; }
       settleUntil = Date.now() + 400;
       requestAnimationFrame(hold);
+    });
+
+    // A chapter that fits on screen is read as soon as it is shown.
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (document.documentElement.scrollHeight <= window.innerHeight + 4) {
+          vscode.postMessage({ type: 'finished' });
+        }
+      }, 1500);
     });
 
     let reportTimer;

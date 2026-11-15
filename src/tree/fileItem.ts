@@ -15,7 +15,7 @@ export class FolderItem extends vscode.TreeItem {
   }
 }
 
-/** Any other file on disk — opens in a normal editor tab. */
+/** Any other file on disk, opens in a normal editor tab. */
 export class FileItem extends vscode.TreeItem {
   constructor(public readonly filePath: string) {
     super(path.basename(filePath), vscode.TreeItemCollapsibleState.None);

@@ -1,0 +1,13 @@
+{
+  "name": "open-reader-ui-harness",
+  "private": true,
+  "description": "Drives a real VS Code with the extension loaded, for screenshots and UI checks.",
+  "scripts": {
+    "setup": "node -e \"require('@vscode/test-electron').downloadAndUnzipVSCode({version:'stable',cachePath:__dirname+'/.vscode-test'}).then(p=>console.log(p))\"",
+    "start": "node server.js ../.."
+  },
+  "dependencies": {
+    "@vscode/test-electron": "2.5.2",
+    "playwright-core": "1.56.1"
+  }
+}

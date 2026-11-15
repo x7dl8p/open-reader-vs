@@ -43,7 +43,7 @@ export class ScrollStore {
     const key = ScrollStore.key(filePath, index);
     const clamped = Math.min(Math.max(ratio, 0), 1);
 
-    // Nothing new to save means no write and, crucially, no timer — an open but idle
+    // Nothing new to save means no write and, crucially, no timer, an open but idle
     // book must not tick every 800ms forever.
     if (Math.abs(this.get(filePath, index) - clamped) < 0.001) {
       return;

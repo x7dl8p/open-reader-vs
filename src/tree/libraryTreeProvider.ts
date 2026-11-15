@@ -5,6 +5,7 @@ import type { ProgressStore } from '../epub/progress';
 import { formatForPath } from '../epub/formats';
 import { BookItem } from './bookItem';
 import { ChapterItem } from './chapterItem';
+import type { ReadStore } from '../epub/readStore';
 import { BookFileItem, FileItem, FolderItem } from './fileItem';
 
 export type LibraryTreeElement = BookItem | ChapterItem | FolderItem | BookFileItem | FileItem;
@@ -18,7 +19,7 @@ export type LibraryViewMode = 'library' | 'files';
 const CONTEXT_KEY = 'openReader.fileView';
 const SKIPPED_DIRS = new Set(['node_modules']);
 
-/** Folders first, then files, each alphabetical — the order the Explorer uses. */
+/** Folders first, then files, each alphabetical, the order the Explorer uses. */
 function sortEntries(entries: LibraryTreeElement[]): LibraryTreeElement[] {
   const byLabel = (a: vscode.TreeItem, b: vscode.TreeItem) => String(a.label).localeCompare(String(b.label));
   const folders = entries.filter((entry) => entry instanceof FolderItem).sort(byLabel);
@@ -38,7 +39,13 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
   private pendingReveal?: { filePath: string; index: number };
   private revealing = false;
 
-  constructor(private library: Library, private progress: ProgressStore) {
+  constructor(
+    private library: Library,
+    private progress: ProgressStore,
+    private readStore: ReadStore,
+    /** Downloaded chapter indexes of an online novel. */
+    private downloaded: (filePath: string) => Promise<Set<number>>
+  ) {
     void vscode.commands.executeCommand('setContext', CONTEXT_KEY, false);
   }
 
@@ -55,7 +62,7 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
   /**
    * Move the reading marker to a chapter and select it.
    *
-   * The chapter's tree item may not exist yet — on a restored session the reader renders
+   * The chapter's tree item may not exist yet, on a restored session the reader renders
    * before the tree has been asked for anything. So the target is remembered and applied
    * again as soon as the items it needs are produced.
    */
@@ -87,7 +94,7 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
         await this.view.reveal(chapter, { select: true, focus: false });
       }
     } catch {
-      // The book is not in the tree right now — the refresh above has already moved the
+      // The book is not in the tree right now, the refresh above has already moved the
       // marker, so the selection is the only thing lost.
     } finally {
       this.revealing = false;
@@ -124,7 +131,13 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
   private async getBooks(): Promise<BookItem[]> {
     const books = await this.library.listBooks();
     const items = books.map(
-      (book) => new BookItem(book, this.progress.get(book.filePath), vscode.TreeItemCollapsibleState.Collapsed)
+      (book) =>
+        new BookItem(
+          book,
+          this.progress.get(book.filePath),
+          vscode.TreeItemCollapsibleState.Collapsed,
+          this.readStore.get(book.filePath).read.size
+        )
     );
 
     this.bookItems = new Map(items.map((item) => [item.book.filePath, item]));
@@ -132,11 +145,21 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
     return items;
   }
 
-  private getChapters(bookItem: BookItem): ChapterItem[] {
+  private async getChapters(bookItem: BookItem): Promise<ChapterItem[]> {
     const { book } = bookItem;
     const currentIndex = this.progress.get(book.filePath);
+    const { read, bookmarks } = this.readStore.get(book.filePath);
+    const online = Boolean(book.online);
+    const downloaded = online ? await this.downloaded(book.filePath).catch(() => new Set<number>()) : new Set<number>();
     const items = book.meta.toc.map(
-      (chapter, index) => new ChapterItem(book.filePath, index, chapter.label, index === currentIndex)
+      (chapter, index) =>
+        new ChapterItem(book.filePath, index, chapter.label, {
+          current: index === currentIndex,
+          read: read.has(index),
+          bookmarked: bookmarks.has(index),
+          downloaded: downloaded.has(index),
+          online,
+        })
     );
 
     for (const item of items) {
@@ -146,7 +169,7 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
     return items;
   }
 
-  /** Every browse root's contents, merged flat — no per-root header nodes. */
+  /** Every browse root's contents, merged flat, no per-root header nodes. */
   private async getFileRoots(): Promise<LibraryTreeElement[]> {
     const folders = this.library.getBrowseFolders();
     const listings = await Promise.all(folders.map((folder) => this.readFolder(folder)));

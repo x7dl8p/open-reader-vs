@@ -1,0 +1,4 @@
+#!/bin/sh
+# Send one step (the body of an async JS function) to a running harness.
+#   ./run "await cmd('Reader: Browse Sources'); return await shot('browse')"
+curl -s --max-time 300 -X POST --data-binary "$1" http://127.0.0.1:7777/eval; echo

@@ -1,12 +1,12 @@
-import type { ReaderPrefs } from '../../epub/readerPrefs';
+import type { ReaderPrefs, ReaderSurface } from '../../epub/readerPrefs';
 import { THEME_SPEC } from '../readerTheme';
 
-export function settingsScript(prefs: ReaderPrefs): string {
+export function settingsScript(prefs: Record<ReaderSurface, ReaderPrefs>, activeTab: ReaderSurface): string {
   return `
 const vscode = acquireVsCodeApi();
 const SPEC = ${JSON.stringify(THEME_SPEC)};
-const prefs = ${JSON.stringify(prefs)};
-const preview = document.getElementById('preview');
+const ALL = ${JSON.stringify(prefs)};
+const state = Object.assign({ tab: ${JSON.stringify(activeTab)}, sideWidth: 320 }, vscode.getState() || {});
 
 function computeVars(p) {
   const vars = {};
@@ -27,70 +27,123 @@ function computeVars(p) {
   return vars;
 }
 
-function paint() {
-  const vars = computeVars(prefs);
-  for (const name in vars) { preview.style.setProperty(name, vars[name]); }
+function saveState() { vscode.setState(state); }
+
+// ---- Tabs ----
+function showTab(surface) {
+  state.tab = surface;
+  saveState();
+  document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('on', t.dataset.tab === surface); });
+  document.querySelectorAll('.tab-panel').forEach(function (p) { p.hidden = p.dataset.surface !== surface; });
+  if (surface === 'side' && window.applySideWidth) { window.applySideWidth(); }
+  vscode.postMessage({ type: 'tab', surface: surface });
 }
-
-function set(key, value) {
-  prefs[key] = value;
-  paint();
-  vscode.postMessage({ type: 'set', key: key, value: value });
-}
-
-document.querySelectorAll('.segment button').forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    const key = btn.dataset.key;
-    btn.parentElement.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
-    btn.classList.add('on');
-    set(key, btn.dataset.value);
-  });
+document.querySelectorAll('.tab').forEach(function (t) {
+  t.addEventListener('click', function () { showTab(t.dataset.tab); });
 });
-
-document.querySelectorAll('.switch button').forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    const on = !btn.classList.contains('on');
-    btn.classList.toggle('on', on);
-    set(btn.dataset.key, on);
-  });
-});
-
-document.querySelectorAll('input[type=range]').forEach(function (slider) {
-  slider.addEventListener('input', function () {
-    const key = slider.dataset.key;
-    document.querySelector('.value[data-for=' + key + ']').textContent = slider.value + 'px';
-    set(key, Number(slider.value));
-  });
-});
-
-function selectTheme(bg, text, btn) {
-  document.querySelectorAll('.themes button').forEach(function (b) { b.classList.remove('on'); });
-  if (btn) { btn.classList.add('on'); }
-  document.getElementById('bgColor').value = bg || '#ffffff';
-  document.getElementById('textColor').value = text || '#000000';
-  prefs.bgColor = bg;
-  prefs.textColor = text;
-  paint();
-  vscode.postMessage({ type: 'setColors', bgColor: bg, textColor: text });
-}
-
-document.querySelectorAll('.themes button').forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    selectTheme(btn.dataset.bg || '', btn.dataset.text || '', btn);
-  });
-});
-
-['bgColor', 'textColor'].forEach(function (id) {
-  document.getElementById(id).addEventListener('input', function (e) {
-    document.querySelectorAll('.themes button').forEach(function (b) { b.classList.remove('on'); });
-    selectTheme(document.getElementById('bgColor').value, document.getElementById('textColor').value, null);
-  });
+window.addEventListener('message', function (e) {
+  if (e.data && e.data.type === 'tab') { showTab(e.data.surface); }
 });
 
 document.getElementById('reset').addEventListener('click', function () {
-  vscode.postMessage({ type: 'reset' });
+  vscode.postMessage({ type: 'reset', surface: state.tab });
 });
 
-paint();
+// ---- One controller per tab; every selector is scoped to its panel ----
+document.querySelectorAll('.tab-panel').forEach(function (panel) {
+  const surface = panel.dataset.surface;
+  const prefs = ALL[surface];
+  const preview = panel.querySelector('.preview');
+
+  function paint() {
+    const vars = computeVars(prefs);
+    for (const name in vars) { preview.style.setProperty(name, vars[name]); }
+  }
+
+  function set(patch) {
+    Object.assign(prefs, patch);
+    paint();
+    vscode.postMessage({ type: 'set', surface: surface, patch: patch });
+  }
+
+  panel.querySelectorAll('.segment button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.parentElement.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+      const patch = {}; patch[btn.dataset.key] = btn.dataset.value;
+      set(patch);
+    });
+  });
+
+  panel.querySelectorAll('.switch button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const on = !btn.classList.contains('on');
+      btn.classList.toggle('on', on);
+      const patch = {}; patch[btn.dataset.key] = on;
+      set(patch);
+    });
+  });
+
+  panel.querySelectorAll('input[type=range]').forEach(function (slider) {
+    slider.addEventListener('input', function () {
+      const key = slider.dataset.key;
+      panel.querySelector('.value[data-for=' + key + ']').textContent = slider.value + 'px';
+      const patch = {}; patch[key] = Number(slider.value);
+      set(patch);
+    });
+  });
+
+  const bgInput = panel.querySelector('[data-color=bgColor]');
+  const textInput = panel.querySelector('[data-color=textColor]');
+  function selectTheme(bg, text, btn) {
+    panel.querySelectorAll('.themes button').forEach(function (b) { b.classList.remove('on'); });
+    if (btn) { btn.classList.add('on'); }
+    bgInput.value = bg || '#ffffff';
+    textInput.value = text || '#000000';
+    set({ bgColor: bg, textColor: text });
+  }
+  panel.querySelectorAll('.themes button').forEach(function (btn) {
+    btn.addEventListener('click', function () { selectTheme(btn.dataset.bg || '', btn.dataset.text || '', btn); });
+  });
+  [bgInput, textInput].forEach(function (input) {
+    input.addEventListener('input', function () { selectTheme(bgInput.value, textInput.value, null); });
+  });
+
+  paint();
+});
+
+// ---- Side tab: drag the splitter to try the sidebar at different widths ----
+(function () {
+  const layout = document.querySelector('.side-layout');
+  const splitter = layout.querySelector('.splitter');
+  const label = layout.querySelector('.width');
+  function apply(width) {
+    if (layout.clientWidth === 0) { layout.style.setProperty('--side-width', width + 'px'); return; }
+    const max = Math.max(220, layout.clientWidth - 300);
+    state.sideWidth = Math.round(Math.min(Math.max(width, 200), max));
+    layout.style.setProperty('--side-width', state.sideWidth + 'px');
+    label.textContent = '(sidebar at ' + state.sideWidth + 'px)';
+  }
+  apply(state.sideWidth);
+  // Hidden tabs measure 0px wide, so the width is applied again whenever the tab shows.
+  window.applySideWidth = function () { apply(state.sideWidth); };
+  splitter.addEventListener('pointerdown', function (e) {
+    splitter.setPointerCapture(e.pointerId);
+    splitter.classList.add('dragging');
+    const right = layout.getBoundingClientRect().right;
+    function move(ev) { apply(right - ev.clientX); }
+    function up() {
+      splitter.classList.remove('dragging');
+      splitter.removeEventListener('pointermove', move);
+      splitter.removeEventListener('pointerup', up);
+      saveState();
+    }
+    splitter.addEventListener('pointermove', move);
+    splitter.addEventListener('pointerup', up);
+  });
+  window.addEventListener('resize', function () { apply(state.sideWidth); });
+})();
+
+showTab(state.tab);
 `;
 }

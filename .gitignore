@@ -6,3 +6,12 @@ node_modules
 .env
 .env.*
 !.env.example
+
+# UI harness runtime
+test/ui-harness/node_modules
+test/ui-harness/.vscode-test
+test/ui-harness/user-data
+test/ui-harness/extensions
+test/ui-harness/workspace
+test/ui-harness/shots
+test/ui-harness/package-lock.json

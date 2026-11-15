@@ -14,26 +14,56 @@ body {
 
 .head {
   position: sticky; top: 0; z-index: 5;
-  display: flex; align-items: baseline; gap: 16px;
-  padding: 22px 32px 16px;
+  display: flex; align-items: center; gap: 20px;
+  padding: 14px 32px 0;
   background: var(--vscode-editor-background);
   border-bottom: 1px solid var(--vscode-widget-border, rgba(128,128,128,.22));
 }
-.head h1 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
-.head .sub { flex: 1; opacity: .6; font-size: 12px; }
+.head h1 { margin: 0 0 12px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.head .spacer { flex: 1; }
+.head #reset { margin-bottom: 10px; }
 
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
-  padding: 24px 32px 0;
-  align-items: start;
+/* Native-looking horizontal tabs, like the editor's own tab strip. */
+.tabs { display: flex; gap: 2px; align-self: flex-end; }
+.tab {
+  border: none; background: none; cursor: pointer;
+  color: var(--vscode-tab-inactiveForeground, var(--vscode-foreground));
+  font-family: inherit; font-size: 12.5px; font-weight: 500;
+  padding: 8px 14px 9px; border-bottom: 2px solid transparent; opacity: .75;
 }
-@media (min-width: 1080px) {
-  .layout { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); }
+.tab:hover { opacity: 1; }
+.tab.on {
+  opacity: 1; color: var(--vscode-tab-activeForeground, var(--vscode-foreground));
+  border-bottom-color: var(--vscode-focusBorder, var(--vscode-button-background));
 }
+
+.tab-panel { padding: 22px 32px 0; }
+.tab-panel[hidden] { display: none; }
 
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.main .cards { margin-top: 24px; }
+.cards.stacked { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-content: start; }
+
+/* Main tab: the preview spans the page like the editor reader does. */
+.main-preview { height: 46vh; min-height: 240px; resize: vertical; }
+
+/* Side tab: controls | splitter | preview, the preview width set by dragging. */
+.side-layout {
+  --side-width: 320px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9px var(--side-width);
+  gap: 0 14px;
+  align-items: start;
+}
+.splitter {
+  align-self: stretch; cursor: col-resize; border-radius: 4px; min-height: 200px;
+  background: linear-gradient(var(--vscode-widget-border, rgba(128,128,128,.3)), var(--vscode-widget-border, rgba(128,128,128,.3))) center / 1px 100% no-repeat;
+}
+.splitter:hover, .splitter.dragging {
+  background: linear-gradient(var(--vscode-sash-hoverBorder, var(--vscode-focusBorder)), var(--vscode-sash-hoverBorder, var(--vscode-focusBorder))) center / 3px 100% no-repeat;
+}
+.side-preview-wrap { position: sticky; top: 70px; }
+.side-preview { height: calc(100vh - 120px); min-height: 300px; }
 
 .card {
   border: 1px solid var(--vscode-widget-border, rgba(128,128,128,.22));
@@ -123,16 +153,15 @@ input[type=color] {
   border-radius: 7px; background: none;
 }
 
-.preview-wrap { position: sticky; top: 84px; }
 .preview-label {
   font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
-  opacity: .55; margin-bottom: 9px;
+  opacity: .6; margin-bottom: 9px;
 }
-#preview {
+.preview-label .sub { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.preview {
   border: 1px solid var(--vscode-widget-border, rgba(128,128,128,.22));
-  border-radius: 10px;
-  overflow: hidden;
-  max-height: 62vh; overflow-y: auto;
+  border-radius: 8px;
+  overflow-y: auto;
   background: var(--reader-bg);
   color: var(--reader-fg);
   font-family: var(--reader-font);
@@ -143,9 +172,9 @@ input[type=color] {
   text-align: var(--reader-align);
   padding: var(--reader-margin-y) var(--reader-margin-x);
 }
-#preview .cols { column-width: var(--reader-columns); column-gap: 2rem; }
-#preview h3 { margin: 0 0 .6em; font-size: 1.15em; font-weight: 600; text-indent: 0; }
-#preview p { text-indent: var(--reader-indent); margin: var(--reader-para-margin); }
+.preview .cols { column-width: var(--reader-columns); column-gap: 2rem; }
+.preview h3 { margin: 0 0 .6em; font-size: 1.15em; font-weight: 600; text-indent: 0; }
+.preview p { text-indent: var(--reader-indent); margin: var(--reader-para-margin); }
 
 button.ghost {
   border: 1px solid var(--vscode-widget-border, rgba(128,128,128,.3));

@@ -5,11 +5,14 @@ import * as vscode from 'vscode';
 import type JSZip from 'jszip';
 import type { BookMeta, ExtractedChapter } from './types';
 import { allExtensions, formatForPath, type BookFormat } from './formats';
+import type { NovelStore } from '../sources/novelStore';
 
 export interface LibraryBook {
   filePath: string;
   fileName: string;
   meta: BookMeta;
+  /** Set for novels added from an online source; their chapters are fetched on demand. */
+  online?: { sourceName: string; url: string };
 }
 
 interface CacheEntry {
@@ -27,7 +30,16 @@ interface CacheEntry {
 export class Library {
   private cache = new Map<string, CacheEntry>();
 
-  constructor(private imageStorageDir: string) {}
+  constructor(
+    private imageStorageDir: string,
+    /** Books imported from a link land here, and it is always part of the library. */
+    readonly downloadsDir: string,
+    private online?: NovelStore
+  ) {}
+
+  isOnline(filePath: string): boolean {
+    return this.online?.owns(filePath) ?? false;
+  }
 
   private workspaceFolders(): string[] {
     return (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
@@ -42,11 +54,11 @@ export class Library {
    * so a book you add is always readable no matter where it lives on disk.
    */
   getBookFolders(): string[] {
-    return dedupeFolders([...this.workspaceFolders(), ...this.configuredFolders()]);
+    return dedupeFolders([...this.workspaceFolders(), ...this.configuredFolders(), this.downloadsDir]);
   }
 
   /**
-   * The eye/file view browses the project you have open — the same tree the Explorer
+   * The eye/file view browses the project you have open, the same tree the Explorer
    * shows. Added folders feed the book list, not this. With no workspace open there is
    * nothing to browse, so the added folders stand in.
    */
@@ -79,14 +91,34 @@ export class Library {
     }
 
     found.sort((a, b) => a.meta.title.localeCompare(b.meta.title));
+
+    // Online novels follow the local books, most recently added first.
+    for (const { filePath, novel } of (await this.online?.listLibrary()) ?? []) {
+      try {
+        found.push({
+          filePath,
+          fileName: novel.name,
+          meta: await this.online!.getMeta(filePath),
+          online: { sourceName: novel.sourceName, url: novel.url },
+        });
+      } catch (err) {
+        console.error(`[open-reader] Failed to read saved novel ${filePath}:`, err);
+      }
+    }
     return found;
   }
 
   async getMeta(filePath: string): Promise<BookMeta> {
+    if (this.online?.owns(filePath)) {
+      return this.online.getMeta(filePath);
+    }
     return (await this.loadEntry(filePath)).meta;
   }
 
   async getChapter(filePath: string, index: number): Promise<ExtractedChapter> {
+    if (this.online?.owns(filePath)) {
+      return this.online.getChapter(filePath, index);
+    }
     const entry = await this.loadEntry(filePath);
     const bookDir = path.join(this.imageStorageDir, crypto.createHash('sha1').update(filePath).digest('hex'));
     let ordinal = 0;
@@ -136,7 +168,7 @@ async function realPath(target: string): Promise<string> {
 }
 
 /**
- * Normalise the roots and drop any folder already covered by another — scanning both
+ * Normalise the roots and drop any folder already covered by another, scanning both
  * `/books` and `/books/epub` would otherwise find every book inside twice.
  */
 function dedupeFolders(folders: string[]): string[] {

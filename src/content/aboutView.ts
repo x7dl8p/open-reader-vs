@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-/** Mirrors the web app's src/lib/site.json — update both when a URL changes. */
+/** Mirrors the web app's src/lib/site.json. Update both when a URL changes. */
 const LINKS = {
   website: 'https://open-reader-web.vercel.app/',
   library: 'https://open-reader-web.vercel.app/library',
@@ -11,6 +11,30 @@ const LINKS = {
   issues: 'https://github.com/x7dl8p/open-reader-vs/issues',
   releases: 'https://github.com/x7dl8p/open-reader-vs/releases',
 };
+
+/** Projects Open Reader builds on. Shown in the Credits section of the About page. */
+const CREDITS: Array<{ name: string; url: string; note: string; license: string }> = [
+  {
+    name: 'LNReader',
+    url: 'https://github.com/LNReader/lnreader',
+    note: 'Browse Sources follows the LNReader app: its plugin runtime, source browsing, library flow, read marks and downloads.',
+    license: 'MIT, Rajarshee Chatterjee and contributors',
+  },
+  {
+    name: 'LNReader Plugins',
+    url: 'https://github.com/LNReader/lnreader-plugins',
+    note: 'Every source in Browse Sources is a plugin from this repository, written and kept working by its community.',
+    license: 'MIT, Rajarshee Chatterjee and contributors',
+  },
+  { name: 'cheerio', url: 'https://github.com/cheeriojs/cheerio', note: 'HTML parsing for sources and chapter cleanup.', license: 'MIT' },
+  { name: 'htmlparser2', url: 'https://github.com/fb55/htmlparser2', note: 'Streaming HTML parser used by sources.', license: 'MIT' },
+  { name: 'Day.js', url: 'https://github.com/iamkun/dayjs', note: 'Dates in source plugins.', license: 'MIT' },
+  { name: 'protobuf.js', url: 'https://github.com/protobufjs/protobuf.js', note: 'Protocol buffers for sources that need them.', license: 'BSD-3-Clause' },
+  { name: 'noble-ciphers', url: 'https://github.com/paulmillr/noble-ciphers', note: 'AES for sources with encrypted chapters.', license: 'MIT' },
+  { name: 'JSZip', url: 'https://github.com/Stuk/jszip', note: 'Opens EPUB and CBZ archives.', license: 'MIT or GPL-3.0, used under MIT' },
+  { name: 'Turndown', url: 'https://github.com/mixmark-io/turndown', note: 'HTML to text conversion.', license: 'MIT' },
+  { name: 'Codicons', url: 'https://github.com/microsoft/vscode-codicons', note: 'The icons on the Browse Sources page.', license: 'CC BY 4.0' },
+];
 
 const BRAND = '#F79518';
 const BRAND_SOFT = '#F9BE71';
@@ -132,6 +156,14 @@ h1 {
 .web-list a:hover { color: var(--brand); }
 .web-list span { color: var(--muted); font-size: 12px; }
 
+.credits { margin-bottom: 40px; }
+.credit-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.credit-list li { display: grid; grid-template-columns: 130px 1fr; column-gap: 14px; row-gap: 1px; }
+.credit-list a { grid-row: span 2; color: var(--vscode-foreground); text-decoration: none; font-weight: 600; }
+.credit-list a:hover { color: var(--brand); }
+.credit-list .note { font-size: 12px; }
+.credit-list .license { font-size: 11px; color: var(--muted); }
+
 .meta { display: flex; justify-content: space-between; gap: 16px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 </style>
 </head>
@@ -140,7 +172,7 @@ h1 {
     <section class="hero">
       <img class="mark" src="${icon}" alt="">
       <h1>${escapeHtml(this.name)}</h1>
-      <p class="tagline">A local-first reader for EPUB and CBZ comics, living inside your editor. Your library, your typography, nothing leaving your machine.</p>
+      <p class="tagline">A local-first reader for EPUB books, CBZ comics and web novels, living inside your editor. Your library, your typography, your reading progress.</p>
       <div class="pill">Version ${escapeHtml(this.version)}</div>
     </section>
 
@@ -149,7 +181,7 @@ h1 {
       <div class="trait">
         <svg viewBox="0 0 24 24"><path d="M4 5.5c2.5-1.2 5.5-1.3 8 .3v12c-2.5-1.6-5.5-1.5-8-.3z"/><path d="M20 5.5c-2.5-1.2-5.5-1.3-8 .3v12c2.5-1.6 5.5-1.5 8-.3z"/></svg>
         <h3>Reads like a book</h3>
-        <p>Styled prose in the sidebar or the editor area — never your code font.</p>
+        <p>Styled prose in the sidebar or the editor area, never your code font.</p>
       </div>
       <div class="trait">
         <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
@@ -159,15 +191,20 @@ h1 {
       <div class="trait">
         <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8h14"/><circle cx="9" cy="14" r="2.5"/></svg>
         <h3>Tuned to you</h3>
-        <p>Typeface, rhythm, margins and themes, applied live as you change them.</p>
+        <p>Typeface, rhythm, margins and themes for each reader, applied live as you change them.</p>
+      </div>
+      <div class="trait">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>
+        <h3>Web novels too</h3>
+        <p>Install LNReader sources, browse, add to your library, download chapters to read offline.</p>
       </div>
     </section>
 
     <div class="rule"><span>On the web</span></div>
     <section class="web">
       <p class="web-lead">
-        Open Reader also runs in the browser at <a href="${LINKS.website}">open-reader-web.vercel.app</a> —
-        the same library, the same typography controls and the same reading themes, with your books kept in
+        Open Reader also runs in the browser at <a href="${LINKS.website}">open-reader-web.vercel.app</a>,
+        with the same library, the same typography controls and the same reading themes, with your books kept in
         the browser's own storage. Nothing syncs between the two: each keeps its own shelf, locally.
       </p>
       <ul class="web-list">
@@ -196,8 +233,21 @@ h1 {
       </a>
     </section>
 
+    <div class="rule"><span>Credits</span></div>
+    <section class="credits">
+      <p class="web-lead">
+        Web novel support stands on the work of the LNReader project. Thank you to its maintainers and to
+        everyone who writes and fixes sources. Stories belong to their authors and the sites that host them.
+      </p>
+      <ul class="credit-list">
+        ${CREDITS.map(
+          (c) => `<li><a href="${c.url}">${escapeHtml(c.name)}</a><span class="note">${escapeHtml(c.note)}</span><span class="license">${escapeHtml(c.license)}</span></li>`
+        ).join('\n        ')}
+      </ul>
+    </section>
+
     <footer class="meta">
-      <span>EPUB &amp; CBZ · local-first · <a href="${LINKS.website}" style="color:var(--brand);text-decoration:none">on the web</a></span>
+      <span>EPUB, CBZ &amp; web novels · local-first · <a href="${LINKS.website}" style="color:var(--brand);text-decoration:none">on the web</a></span>
       <span>v${escapeHtml(this.version)}</span>
     </footer>
   </main>
