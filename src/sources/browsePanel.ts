@@ -175,7 +175,7 @@ export class BrowsePanel {
         this.downloads.enqueue(str('filePath'), indexes(p));
         return {};
       case 'cancelDownload':
-        this.downloads.cancel(str('filePath'));
+        void this.downloads.cancel(str('filePath'));
         return {};
       case 'deleteDownloads':
         await this.novels.deleteDownloads(str('filePath'), indexes(p));
@@ -207,7 +207,8 @@ export class BrowsePanel {
   private async chapterState(filePath: string) {
     const { read, bookmarks } = this.readStore.get(filePath);
     return {
-      progress: this.progress.get(filePath),
+      // -1 when the novel has never been opened.
+      progress: this.progress.last(filePath) ?? -1,
       read: [...read],
       bookmarks: [...bookmarks],
       downloaded: [...(await this.novels.downloadedIndexes(filePath).catch(() => new Set<number>()))],

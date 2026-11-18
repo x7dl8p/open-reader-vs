@@ -12,14 +12,6 @@ const FONT_FAMILIES: Record<string, string> = {
   dyslexic: "'OpenDyslexic', 'Comic Sans MS', sans-serif",
 };
 
-const FONT_SIZES: Record<string, string> = {
-  sm: '14px',
-  md: '16px',
-  lg: '18px',
-  xl: '20px',
-  '2xl': '24px',
-};
-
 const FONT_WEIGHTS: Record<string, number> = {
   light: 300,
   normal: 400,
@@ -50,7 +42,6 @@ export const THEME_SPEC: {
 } = {
   lookup: {
     fontFamily: ['--reader-font', FONT_FAMILIES],
-    fontSize: ['--reader-size', FONT_SIZES],
     fontWeight: ['--reader-weight', FONT_WEIGHTS],
     lineHeight: ['--reader-leading', LINE_HEIGHTS],
     letterSpacing: ['--reader-tracking', LETTER_SPACINGS],
@@ -59,6 +50,7 @@ export const THEME_SPEC: {
     textAlign: '--reader-align',
   },
   px: {
+    fontSize: '--reader-size',
     marginX: '--reader-margin-x',
     marginY: '--reader-margin-y',
   },

@@ -7,7 +7,8 @@ import * as vscode from 'vscode';
  */
 export interface ReaderPrefs {
   fontFamily: 'serif' | 'sans' | 'mono' | 'dyslexic';
-  fontSize: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  /** Pixels. Older versions stored a size name, see LEGACY_FONT_SIZES. */
+  fontSize: number;
   fontWeight: 'light' | 'normal' | 'medium' | 'bold';
   lineHeight: 'tight' | 'normal' | 'relaxed' | 'loose';
   letterSpacing: 'tight' | 'normal' | 'wide' | 'wider';
@@ -23,7 +24,7 @@ export interface ReaderPrefs {
 
 export const DEFAULT_READER_PREFS: ReaderPrefs = {
   fontFamily: 'serif',
-  fontSize: 'md',
+  fontSize: 16,
   fontWeight: 'normal',
   lineHeight: 'relaxed',
   letterSpacing: 'normal',
@@ -47,6 +48,20 @@ export const PREBUILT_THEMES: Array<{ id: string; name: string; bg: string; text
 
 const KEYS = Object.keys(DEFAULT_READER_PREFS) as Array<keyof ReaderPrefs>;
 
+export const FONT_SIZE_MIN = 10;
+/** Four times the old largest size (2XL, 24px). */
+export const FONT_SIZE_MAX = 96;
+const LEGACY_FONT_SIZES: Record<string, number> = { sm: 14, md: 16, lg: 18, xl: 20, '2xl': 24 };
+
+/** A stored font size as pixels: numbers are clamped, old size names are translated. */
+function toFontSize(value: unknown): number {
+  const px = typeof value === 'string' ? (LEGACY_FONT_SIZES[value] ?? Number(value)) : Number(value);
+  if (!Number.isFinite(px)) {
+    return DEFAULT_READER_PREFS.fontSize;
+  }
+  return Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, Math.round(px)));
+}
+
 /**
  * The two reading surfaces are styled independently: the editor-area reader ('main')
  * keeps the original flat openReader.* keys, the sidebar Reader view ('side') keeps its
@@ -62,15 +77,17 @@ export function loadReaderPrefs(surface: ReaderSurface): ReaderPrefs {
   if (surface === 'side') {
     const stored = config.get<Partial<ReaderPrefs>>(SIDE_KEY) ?? {};
     for (const key of KEYS) {
-      if (typeof stored[key] === typeof DEFAULT_READER_PREFS[key]) {
+      if (key !== 'fontSize' && typeof stored[key] === typeof DEFAULT_READER_PREFS[key]) {
         (prefs as Record<string, unknown>)[key] = stored[key];
       }
     }
+    prefs.fontSize = toFontSize(stored.fontSize ?? DEFAULT_READER_PREFS.fontSize);
     return prefs;
   }
   for (const key of KEYS) {
     (prefs as Record<string, unknown>)[key] = config.get(key, DEFAULT_READER_PREFS[key]);
   }
+  prefs.fontSize = toFontSize(prefs.fontSize);
   return prefs;
 }
 

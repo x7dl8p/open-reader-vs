@@ -36,25 +36,25 @@ Sources are [LNReader plugins](https://github.com/LNReader/lnreader-plugins), th
 
 Open a novel to see its details and every chapter, then **Add to Library** and it appears in the sidebar like any other book.
 
-- **Read chapters fade out.** A chapter is marked read when you reach its end or move on to the next one. **Continue** picks up at the first chapter you have not finished.
-- **Select and act**, like the app's selection bar: hover a chapter for its checkbox, Shift-click for a range, then Mark Read, Mark Unread, Mark Previous Read, Bookmark, Download or Delete.
+- **Read chapters fade out.** A chapter is marked read as soon as you open it. **Continue** takes you back to the chapter you last opened.
+- **Select and act**, like the app's selection bar: hover a chapter for its checkbox, Shift-click for a range or pick two and use **In Between**, then Mark Read, Mark Unread, Mark Previous Read, Bookmark, Download or Delete.
 - **Filter** by Unread, Downloaded or Bookmarked, search chapter titles, or reverse the order.
 
 <img src="public/Screen-Shots/chapters.png" alt="A novel's chapter list with read chapters dimmed, downloaded chapters ticked, a bookmark and three chapters selected" width="900" height="506">
 
-**Download for offline reading**: the next chapter, the next 5 or 10, every unread chapter, or all of them. Progress shows on the page and in the status bar, and a click there cancels.
+**Download for offline reading**: the next chapter, the next 5 or 10, every unread chapter, or all of them. Three chapters download at a time by default (up to 12, set with `downloadConcurrency`). Progress shows on the page and in the status bar, and a click there cancels.
 
 <img src="public/Screen-Shots/download-menu.png" alt="The download menu: next chapter, next 5, next 10, unread chapters, all chapters, delete all downloads" width="900" height="506">
 
 ## Your progress in the Library
 
-In the sidebar, read chapters are greyed out with a tick, bookmarks get their own icon, downloaded chapters carry a ↓ badge, and each novel shows how many chapters are still unread. Select several chapters (Ctrl or Shift click) and right-click to mark, bookmark or download them all at once.
+In the sidebar, unread chapters show at full strength and read ones fade to 25%, downloaded chapters carry a ↓ badge, and each novel shows how many chapters are still unread. Click a book to continue from the chapter you last read; hover it and press the eye button for its table of contents. Right-click a book to rename or delete it, mark it all read, or (for web novels) check for new chapters and download. **Bookmarks** in the Library's `···` menu opens a page with every bookmarked chapter, grouped by book. Select several chapters (Ctrl or Shift click) and right-click to mark, bookmark or download them all at once, including Mark Previous as Read.
 
 <img src="public/Screen-Shots/library.png" alt="The Library sidebar with read chapters greyed out, a bookmark, download badges and an unread count, next to a chapter in the editor reader" width="900" height="506">
 
 ## Import from a link
 
-Click the **link icon** in the Library title bar, or use the box on the Browse Sources page, and paste:
+Use **Import from Link** on the Browse Sources page (the link icon in its Sources header, or the box on its start page) and paste:
 
 - **a novel's page** from any site a source serves. Open Reader finds the matching source, offers to install it, and adds the novel to your library.
 - **a direct link to an EPUB or CBZ file**. It is downloaded into your library.
@@ -79,12 +79,12 @@ Reader Settings now has a tab for each reading surface, so the editor reader and
 
 - **Library view.** Every `.epub` and `.cbz` in your library folders, plus the web novels you added, expandable to chapters, with per-book reading progress.
 - **Browse Sources.** Install LNReader sources, browse popular and latest novels, search, filter, and add novels to your library.
-- **Read marks, bookmarks and downloads.** Chapters you finish are marked read and fade out; bookmark chapters; download chapters to read offline. Works for local books too.
+- **Read marks, bookmarks and downloads.** Chapters you open are marked read and fade out; bookmark chapters; download chapters to read offline, several at a time. Works for local books too.
 - **Import from link.** A novel's page on a supported site, or a direct EPUB or CBZ link.
 - **File browsing.** The eye button in the view title swaps the book list for your workspace as it sits on disk. Books open in the reader, everything else opens as a normal editor tab.
 - **Two reading surfaces.** The Reader panel in the sidebar, or a full-width editor tab, each with its own typography settings.
 - **Resume where you left off.** Reading progress per book and scroll position per chapter, both remembered across restarts.
-- **Reader Settings.** Font family, size and weight, line height, letter spacing, alignment, margins, paragraph indent, two-page columns, and reading themes (Warm Ivory, Classic Sepia, Dark Parchment, OLED Midnight, or your own colours).
+- **Reader Settings.** Font family, a text size slider from 10 to 96 px, weight, line height, letter spacing, alignment, margins, paragraph indent, two-page columns, and reading themes (Warm Ivory, Classic Sepia, Dark Parchment, OLED Midnight, or your own colours).
 
 ## Install
 
@@ -104,7 +104,7 @@ All under `openReader.*`, editable from the Reader Settings page or `settings.js
 | --- | --- |
 | `libraryFolders` | Extra folders to scan for books, alongside the workspace. |
 | `sourceRepositories` | LNReader plugin repositories (`plugins.min.json` URLs). Defaults to the official one. |
-| `fontFamily`, `fontSize`, `fontWeight` | Editor reader: serif, sans, mono or dyslexic; five sizes; four weights. |
+| `fontFamily`, `fontSize`, `fontWeight` | Editor reader: serif, sans, mono or dyslexic; text size in pixels from 10 to 96 (a slider in Reader Settings); four weights. |
 | `lineHeight`, `letterSpacing`, `textAlign` | Editor reader: rhythm and alignment. |
 | `marginX`, `marginY` | Editor reader: padding around the text, in pixels. |
 | `indent` | Indent first lines instead of spacing paragraphs apart. |
@@ -113,6 +113,7 @@ All under `openReader.*`, editable from the Reader Settings page or `settings.js
 | `bgColor`, `textColor` | Custom reading theme. Empty follows your VS Code theme. |
 | `sidePanel` | The same settings for the sidebar Reader, set from the Side Panel tab. |
 | `restoreLastBook` | Reopen the last book and chapter when the window starts. |
+| `downloadConcurrency` | How many chapters download at the same time, 1 to 12. Default 3. |
 
 ## About sources
 

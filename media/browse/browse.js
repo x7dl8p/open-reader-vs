@@ -630,13 +630,14 @@
     const signal = pageListeners.signal;
     /** Chapter state, kept current by pushed events. */
     const cs = {
-      progress: novel.progress || 0,
+      progress: typeof novel.progress === 'number' ? novel.progress : -1,
       read: new Set(novel.read || []),
       bookmarks: new Set(novel.bookmarks || []),
       downloaded: new Set(novel.downloaded || []),
       download: novel.download || null,
     };
-    const started = () => cs.progress > 0 || cs.read.size > 0;
+    /** Opened at least once. A novel never opened has no current chapter. */
+    const started = () => cs.progress >= 0;
 
     const libBtn = novel.inLibrary
       ? button('In Library', { kind: 'secondary', icon: 'check', title: 'Remove from Library', onclick: () => setLibrary(false) })
@@ -654,13 +655,8 @@
 
     /** The first unread chapter, where "Continue" and "Next N" start. */
     const firstUnread = () => { for (let i = 0; i < chapters.length; i++) { if (!cs.read.has(i)) { return i; } } return chapters.length; };
-    /** Where reading resumes: the last chapter opened, or the next unread one once that is finished. */
-    const resumeIndex = () => {
-      const at = Math.min(cs.progress || 0, chapters.length - 1);
-      if (!cs.read.has(at)) { return at; }
-      for (let i = at + 1; i < chapters.length; i++) { if (!cs.read.has(i)) { return i; } }
-      return at;
-    };
+    /** Where reading resumes: the chapter last opened (opening a chapter marks it read). */
+    const resumeIndex = () => (started() ? Math.min(cs.progress, chapters.length - 1) : Math.min(firstUnread(), Math.max(0, chapters.length - 1)));
     const continueBtn = h('span', {});
     function paintContinue() {
       continueBtn.replaceChildren(chapters.length
@@ -756,7 +752,7 @@
         icon('loading', 'codicon-modifier-spin'),
         h('span', {}, `Downloading ${d.done} / ${d.total}`),
         h('div', { class: 'bar' }, h('div', { class: 'fill', style: `width:${pct}%` })),
-        d.failed ? h('span', { class: 'muted small' }, `${d.failed} failed`) : null,
+        d.failed ? h('span', { class: 'muted small' }, `${d.failed} failed`) : '',
         h('button', { class: 'link-btn', onclick: () => act('cancelDownload', {}) }, 'Cancel'));
     }
 
@@ -785,11 +781,20 @@
         anyDownloaded ? button('Delete', { kind: 'secondary', small: true, icon: 'trash', title: 'Delete downloaded copies',
           onclick: done(() => call('deleteDownloads', { filePath, indexes: idx }).then(applyState).catch((e) => toast(e.message, 'error'))) }) : '',
         h('span', { class: 'sep' }, '|'),
+        selected.size >= 2 ? h('button', { class: 'link-btn', title: 'Select every chapter between the first and last selected', onclick: selectBetween }, 'In Between') : '',
         h('button', { class: 'link-btn', title: 'Select every chapter in the list', onclick: () => { visible.forEach((i) => selected.add(i)); paintAll(); } }, 'All'),
         h('button', { class: 'link-btn', title: 'Invert the selection', onclick: () => { visible.forEach((i) => (selected.has(i) ? selected.delete(i) : selected.add(i))); paintAll(); } }, 'Invert'),
         iconButton('close', 'Clear selection (Esc)', clearSelection));
     }
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && selected.size) { clearSelection(); } }, { signal });
+
+    /** Fill the gap: everything between the first and last selected chapter, in list order. */
+    function selectBetween() {
+      const positions = [...selected].map((i) => visible.indexOf(i)).filter((pos) => pos >= 0);
+      if (positions.length < 2) { return; }
+      visible.slice(Math.min(...positions), Math.max(...positions) + 1).forEach((i) => selected.add(i));
+      paintAll();
+    }
 
     function toggleSelect(i, shift) {
       if (shift && lastClicked >= 0) {
@@ -890,7 +895,7 @@
     }
 
     function applyState(next) {
-      cs.progress = next.progress || 0;
+      cs.progress = typeof next.progress === 'number' ? next.progress : -1;
       cs.read = new Set(next.read || []);
       cs.bookmarks = new Set(next.bookmarks || []);
       cs.downloaded = new Set(next.downloaded || []);

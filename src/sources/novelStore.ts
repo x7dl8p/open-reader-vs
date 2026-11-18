@@ -295,7 +295,7 @@ const DROP_TAGS = 'script, iframe, frame, frameset, object, embed, form, input, 
  * Chapter HTML comes from a scraped site and renders in a webview that runs scripts,
  * so anything executable or form-like is removed and relative images are made absolute.
  */
-export function sanitizeChapterHtml(html: string, baseUrl: string): string {
+function sanitizeChapterHtml(html: string, baseUrl: string): string {
   const $ = load(html ?? '', null, false);
   $(DROP_TAGS).remove();
   $('*').each((_, el) => {

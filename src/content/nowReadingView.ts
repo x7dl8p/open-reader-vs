@@ -3,11 +3,10 @@ import type { Library } from '../epub/library';
 import type { ProgressStore } from '../epub/progress';
 import type { ScrollStore } from '../epub/scrollStore';
 import { loadReaderPrefs, type ReaderPrefs } from '../epub/readerPrefs';
-import { FINISHED_RATIO } from '../epub/readStore';
 import { prefsToCssVars } from './readerTheme';
 import { renderChapterHtml, renderEmptyHtml, renderLoadingHtml } from './readerTemplate';
 
-type WebviewMessage = { type: 'prev' | 'next' | 'finished' } | { type: 'scroll'; ratio: number };
+type WebviewMessage = { type: 'prev' | 'next' } | { type: 'scroll'; ratio: number };
 
 export class NowReadingViewProvider implements vscode.WebviewViewProvider {
   static readonly viewType = 'openReaderNowReading';
@@ -21,9 +20,8 @@ export class NowReadingViewProvider implements vscode.WebviewViewProvider {
     private progress: ProgressStore,
     private scroll: ScrollStore,
     private imagesRoot: vscode.Uri,
-    private onDidRead: (filePath: string, index: number) => void,
-    /** The reader reached the end of a chapter, or moved on past it. */
-    private onFinished: (filePath: string, index: number) => void = () => {}
+    /** A chapter was shown: moves the reading marker and marks the chapter read. */
+    private onDidRead: (filePath: string, index: number) => void
   ) {}
 
   /**
@@ -71,19 +69,10 @@ export class NowReadingViewProvider implements vscode.WebviewViewProvider {
       await this.step(-1);
     }
     if (msg.type === 'next') {
-      if (this.current) {
-        this.onFinished(this.current.filePath, this.current.index);
-      }
       await this.step(1);
-    }
-    if (msg.type === 'finished' && this.current) {
-      this.onFinished(this.current.filePath, this.current.index);
     }
     if (msg.type === 'scroll' && this.current) {
       this.scroll.set(this.current.filePath, this.current.index, msg.ratio);
-      if (msg.ratio >= FINISHED_RATIO) {
-        this.onFinished(this.current.filePath, this.current.index);
-      }
     }
   }
 

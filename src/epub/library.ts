@@ -6,6 +6,7 @@ import type JSZip from 'jszip';
 import type { BookMeta, ExtractedChapter } from './types';
 import { allExtensions, formatForPath, type BookFormat } from './formats';
 import type { NovelStore } from '../sources/novelStore';
+import type { TitleStore } from './titleStore';
 
 export interface LibraryBook {
   filePath: string;
@@ -34,8 +35,15 @@ export class Library {
     private imageStorageDir: string,
     /** Books imported from a link land here, and it is always part of the library. */
     readonly downloadsDir: string,
-    private online?: NovelStore
+    private online?: NovelStore,
+    private titles?: TitleStore
   ) {}
+
+  /** The book's metadata with any name the user gave it through Rename. */
+  private withTitle(filePath: string, meta: BookMeta): BookMeta {
+    const title = this.titles?.get(filePath);
+    return title ? { ...meta, title } : meta;
+  }
 
   isOnline(filePath: string): boolean {
     return this.online?.owns(filePath) ?? false;
@@ -83,7 +91,7 @@ export class Library {
 
         try {
           const entry = await this.loadEntry(filePath);
-          found.push({ filePath, fileName: path.basename(filePath), meta: entry.meta });
+          found.push({ filePath, fileName: path.basename(filePath), meta: this.withTitle(filePath, entry.meta) });
         } catch (err) {
           console.error(`[open-reader] Failed to parse ${filePath}:`, err);
         }
@@ -98,7 +106,7 @@ export class Library {
         found.push({
           filePath,
           fileName: novel.name,
-          meta: await this.online!.getMeta(filePath),
+          meta: this.withTitle(filePath, await this.online!.getMeta(filePath)),
           online: { sourceName: novel.sourceName, url: novel.url },
         });
       } catch (err) {
@@ -110,9 +118,9 @@ export class Library {
 
   async getMeta(filePath: string): Promise<BookMeta> {
     if (this.online?.owns(filePath)) {
-      return this.online.getMeta(filePath);
+      return this.withTitle(filePath, await this.online.getMeta(filePath));
     }
-    return (await this.loadEntry(filePath)).meta;
+    return this.withTitle(filePath, (await this.loadEntry(filePath)).meta);
   }
 
   async getChapter(filePath: string, index: number): Promise<ExtractedChapter> {

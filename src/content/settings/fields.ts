@@ -1,4 +1,4 @@
-import type { ReaderPrefs } from '../../epub/readerPrefs';
+import { FONT_SIZE_MAX, FONT_SIZE_MIN, type ReaderPrefs } from '../../epub/readerPrefs';
 
 export interface SegmentField {
   kind: 'segment';
@@ -37,13 +37,13 @@ const segment = (key: keyof ReaderPrefs, label: string, options: Array<[string, 
   options: options.map(([value, optionLabel]) => ({ value, label: optionLabel })),
 });
 
-const slider = (key: keyof ReaderPrefs, label: string): SliderField => ({
+const slider = (key: keyof ReaderPrefs, label: string, min = 0, max = 500, step = 2): SliderField => ({
   kind: 'slider',
   key,
   label,
-  min: 0,
-  max: 500,
-  step: 2,
+  min,
+  max,
+  step,
 });
 
 const toggle = (key: keyof ReaderPrefs, label: string, hint: string): ToggleField => ({
@@ -74,13 +74,7 @@ export const CARDS: Card[] = [
   {
     title: 'Size & Rhythm',
     fields: [
-      segment('fontSize', 'Font Size', [
-        ['sm', 'S'],
-        ['md', 'M'],
-        ['lg', 'L'],
-        ['xl', 'XL'],
-        ['2xl', '2XL'],
-      ]),
+      slider('fontSize', 'Font Size', FONT_SIZE_MIN, FONT_SIZE_MAX, 1),
       segment('lineHeight', 'Line Height', [
         ['tight', 'Tight'],
         ['normal', 'Normal'],

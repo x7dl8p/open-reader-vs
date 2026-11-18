@@ -2,8 +2,16 @@ import * as vscode from 'vscode';
 import type { NovelStore } from './novelStore';
 import { errorMessage } from './sourceManager';
 
-/** Two at a time: quick enough, without hammering a small site. */
-const CONCURRENCY = 2;
+/** Bounds of openReader.downloadConcurrency; keep in step with package.json. */
+const CONCURRENCY_MIN = 1;
+const CONCURRENCY_MAX = 12;
+const CONCURRENCY_DEFAULT = 3;
+
+/** Parallel chapter downloads per job, read when a job starts. */
+function concurrency(): number {
+  const value = vscode.workspace.getConfiguration('openReader').get<number>('downloadConcurrency', CONCURRENCY_DEFAULT);
+  return Math.min(CONCURRENCY_MAX, Math.max(CONCURRENCY_MIN, Math.round(Number(value) || CONCURRENCY_DEFAULT)));
+}
 
 export interface DownloadStatus {
   filePath: string;
@@ -17,10 +25,13 @@ export interface DownloadStatus {
 interface Job extends DownloadStatus {
   queue: number[];
   cancelled: boolean;
+  /** Settles once every in-flight chapter has finished. */
+  finished?: Promise<void>;
 }
 
 /**
- * Chapter downloads, one job per novel. Adding chapters to a running job extends it.
+ * Chapter downloads, one job per novel, several chapters in parallel. Adding chapters to
+ * a running job extends it.
  * Progress is published through {@link onDidChange} for the Browse page and the tree.
  */
 export class DownloadQueue {
@@ -40,8 +51,7 @@ export class DownloadQueue {
     if (!job || !job.running) {
       job = { filePath, total: 0, done: 0, failed: 0, running: true, queue: [], cancelled: false };
       this.jobs.set(filePath, job);
-      const started = job;
-      void this.run(started);
+      job.finished = this.run(job);
     }
     const queued = new Set(job.queue);
     const fresh = indexes.filter((i) => !queued.has(i));
@@ -50,17 +60,19 @@ export class DownloadQueue {
     this._onDidChange.fire(snapshot(job));
   }
 
-  cancel(filePath: string): void {
+  /** Stop a job. The promise settles when chapters already downloading have finished. */
+  cancel(filePath: string): Promise<void> {
     const job = this.jobs.get(filePath);
     if (job?.running) {
       job.cancelled = true;
       job.queue = [];
     }
+    return job?.finished ?? Promise.resolve();
   }
 
   cancelAll(): void {
     for (const filePath of this.jobs.keys()) {
-      this.cancel(filePath);
+      void this.cancel(filePath);
     }
   }
 
@@ -88,7 +100,7 @@ export class DownloadQueue {
         this._onDidChange.fire(snapshot(job));
       }
     };
-    await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+    await Promise.all(Array.from({ length: concurrency() }, worker));
     job.running = false;
     this._onDidChange.fire(snapshot(job));
   }

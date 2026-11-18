@@ -22,9 +22,10 @@ export class BookItem extends vscode.TreeItem {
     const where = book.online ? `${book.online.sourceName} · ${book.online.url}` : book.filePath;
     this.tooltip = `${book.meta.title}${book.meta.creator ? ` by ${book.meta.creator}` : ''}\n${where}`;
     this.description = describeBook(book, progressIndex, readCount);
+    // A click picks up where you left off; the eye button opens the table of contents.
     this.command = {
-      command: 'openReader.openToc',
-      title: 'Open Table of Contents',
+      command: 'openReader.openLastRead',
+      title: 'Continue Reading',
       arguments: [book.filePath],
     };
   }

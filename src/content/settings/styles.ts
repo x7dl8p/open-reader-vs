@@ -64,6 +64,15 @@ body {
 }
 .side-preview-wrap { position: sticky; top: 70px; }
 .side-preview { height: calc(100vh - 120px); min-height: 300px; }
+@media (max-width: 760px) {
+  .head { flex-wrap: wrap; padding: 12px 16px 0; gap: 10px; }
+  .tab-panel { padding: 16px 16px 0; }
+  .side-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .splitter { display: none; }
+  .side-preview-wrap { position: static; order: -1; }
+  .side-preview { height: 46vh; }
+  .cards, .cards.stacked { grid-template-columns: minmax(0, 1fr); }
+}
 
 .card {
   border: 1px solid var(--vscode-widget-border, rgba(128,128,128,.22));

@@ -82,14 +82,14 @@ export function registerChapterCommands(context: vscode.ExtensionContext, deps: 
         'Delete'
       );
       if (ok) {
-        downloads.cancel(item.book.filePath);
+        await downloads.cancel(item.book.filePath);
         await novels.deleteDownloads(item.book.filePath);
         refresh();
       }
     }),
     vscode.commands.registerCommand('openReader.cancelDownloads', (filePath?: string) => {
       if (filePath) {
-        downloads.cancel(filePath);
+        void downloads.cancel(filePath);
       } else {
         downloads.cancelAll();
       }

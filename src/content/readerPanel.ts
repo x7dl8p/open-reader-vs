@@ -3,11 +3,10 @@ import type { Library } from '../epub/library';
 import type { ProgressStore } from '../epub/progress';
 import type { ScrollStore } from '../epub/scrollStore';
 import { loadReaderPrefs, type ReaderPrefs } from '../epub/readerPrefs';
-import { FINISHED_RATIO } from '../epub/readStore';
 import { prefsToCssVars } from './readerTheme';
 import { renderChapterHtml, renderLoadingHtml } from './readerTemplate';
 
-type WebviewMessage = { type: 'prev' | 'next' | 'finished' } | { type: 'scroll'; ratio: number };
+type WebviewMessage = { type: 'prev' | 'next' } | { type: 'scroll'; ratio: number };
 
 /**
  * The editor-area reader. Chapters render in a webview panel so the main reading
@@ -28,9 +27,8 @@ export class ReaderPanel {
     private scroll: ScrollStore,
     private imagesRoot: vscode.Uri,
     private iconPath: vscode.Uri,
-    private onDidRead: (filePath: string, index: number) => void,
-    /** The reader reached the end of a chapter, or moved on past it. */
-    private onFinished: (filePath: string, index: number) => void = () => {}
+    /** A chapter was shown: moves the reading marker and marks the chapter read. */
+    private onDidRead: (filePath: string, index: number) => void
   ) {}
 
   get isOpen(): boolean {
@@ -55,9 +53,6 @@ export class ReaderPanel {
   async step(delta: number): Promise<void> {
     if (!this.current) {
       return;
-    }
-    if (delta > 0) {
-      this.onFinished(this.current.filePath, this.current.index);
     }
     await this.show(this.current.filePath, this.current.index + delta);
   }
@@ -98,14 +93,8 @@ export class ReaderPanel {
     if (msg.type === 'next') {
       await this.step(1);
     }
-    if (msg.type === 'finished' && this.current) {
-      this.onFinished(this.current.filePath, this.current.index);
-    }
     if (msg.type === 'scroll' && this.current) {
       this.scroll.set(this.current.filePath, this.current.index, msg.ratio);
-      if (msg.ratio >= FINISHED_RATIO) {
-        this.onFinished(this.current.filePath, this.current.index);
-      }
     }
   }
 

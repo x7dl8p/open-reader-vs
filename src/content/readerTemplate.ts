@@ -111,15 +111,6 @@ img { max-width: 100%; height: auto; border-radius: 4px; }
       requestAnimationFrame(hold);
     });
 
-    // A chapter that fits on screen is read as soon as it is shown.
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        if (document.documentElement.scrollHeight <= window.innerHeight + 4) {
-          vscode.postMessage({ type: 'finished' });
-        }
-      }, 1500);
-    });
-
     let reportTimer;
     window.addEventListener('scroll', () => {
       clearTimeout(reportTimer);

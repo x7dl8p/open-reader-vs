@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
 
 const KEY = 'openReader.chapterState';
-/** A chapter scrolled this far counts as read. */
-export const FINISHED_RATIO = 0.97;
 
 type Stored = Record<string, { r?: number[]; b?: number[] }>;
 
@@ -72,6 +70,11 @@ export class ReadStore {
       read.forEach((i) => state.read.add(i));
       bookmarks.forEach((i) => state.bookmarks.add(i));
     });
+  }
+
+  /** Every bookmarked chapter, across all books. */
+  allBookmarks(): Array<{ filePath: string; index: number }> {
+    return Object.entries(this.all()).flatMap(([filePath, entry]) => (entry.b ?? []).map((index) => ({ filePath, index })));
   }
 
   async forget(filePath: string): Promise<void> {

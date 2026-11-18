@@ -147,7 +147,8 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibraryTreeE
 
   private async getChapters(bookItem: BookItem): Promise<ChapterItem[]> {
     const { book } = bookItem;
-    const currentIndex = this.progress.get(book.filePath);
+    // Undefined for a book never opened: then no chapter is "reading", and every read one dims.
+    const currentIndex = this.progress.last(book.filePath);
     const { read, bookmarks } = this.readStore.get(book.filePath);
     const online = Boolean(book.online);
     const downloaded = online ? await this.downloaded(book.filePath).catch(() => new Set<number>()) : new Set<number>();

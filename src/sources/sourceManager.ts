@@ -16,6 +16,8 @@ const CATALOG_TTL_MS = 30 * 60 * 1000;
 export class SourceManager {
   private catalog?: { at: number; items: SourceItem[] };
   private loaded = new Map<string, SourcePlugin>();
+  /** In-flight loads, so parallel downloads share one evaluation (or one reinstall). */
+  private loading = new Map<string, Promise<SourcePlugin>>();
   private readonly store: KeyValueFile;
   private readonly _onDidChange = new vscode.EventEmitter<void>();
   /** Fires when the set of installed sources changes. */
@@ -106,11 +108,29 @@ export class SourceManager {
     if (cached) {
       return cached;
     }
+    const pending = this.loading.get(id);
+    if (pending) {
+      return pending;
+    }
+    const promise = this.loadFromDisk(id).finally(() => this.loading.delete(id));
+    this.loading.set(id, promise);
+    return promise;
+  }
+
+  private async loadFromDisk(id: string): Promise<SourcePlugin> {
     let code: string;
     try {
       code = await fs.readFile(path.join(this.pluginDir(id), 'index.js'), 'utf8');
     } catch {
-      throw new Error(`Source "${id}" is not installed`);
+      // Recorded as installed but the file is gone, e.g. the extension was removed and
+      // reinstalled, which clears its storage folder but not its saved state. Heal it
+      // by downloading the plugin again instead of asking for a manual reinstall.
+      const record = this.installed().find((item) => item.id === id);
+      if (!record) {
+        throw new Error(`Source "${id}" is not installed`);
+      }
+      const latest = (await this.listAvailable().catch(() => [])).find((item) => item.id === id);
+      return this.install(latest ?? record);
     }
     const plugin = evaluatePlugin(id, code, this.store);
     this.loaded.set(id, plugin);

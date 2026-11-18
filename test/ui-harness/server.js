@@ -13,11 +13,16 @@ const WS = path.join(H, 'workspace');
 const SHOTS = path.join(H, 'shots');
 fs.mkdirSync(WS, { recursive: true });
 fs.mkdirSync(SHOTS, { recursive: true });
-const exe = fs.readdirSync(path.join(H, '.vscode-test')).filter((d) => d.startsWith('vscode-linux'))
-  .map((d) => path.join(H, '.vscode-test', d, 'code'))[0];
+// VSCODE_VERSION=1.107.0 picks that build (download it first); otherwise the newest one.
+const builds = fs.readdirSync(path.join(H, '.vscode-test')).filter((d) => d.startsWith('vscode-linux'))
+  .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+const build = builds.find((d) => process.env.VSCODE_VERSION && d.endsWith(process.env.VSCODE_VERSION)) || builds[0];
+// VSCODE_EXE points at another editor build entirely, e.g. a fork installed on this machine.
+const exe = process.env.VSCODE_EXE || path.join(H, '.vscode-test', build, 'code');
+console.log('Using ' + build);
 
 (async () => {
-  const userData = path.join(H, 'user-data');
+  const userData = path.join(H, process.env.PROFILE || 'user-data');
   fs.mkdirSync(path.join(userData, 'User'), { recursive: true });
   fs.writeFileSync(path.join(userData, 'User', 'settings.json'), JSON.stringify({
     'workbench.startupEditor': 'none', 'security.workspace.trust.enabled': false,

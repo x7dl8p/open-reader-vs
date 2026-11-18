@@ -24,6 +24,7 @@ Each step is the body of an async function with these in scope:
 
 Notes:
 - `HEADED=1 npm start` shows the window instead of running headless.
+- `VSCODE_VERSION=1.107.0 npm start` runs a specific build, e.g. the one an editor fork is based on. Download it first with `@vscode/test-electron`'s `downloadAndUnzipVSCode`.
 - The profile's `settings.json` is reset at every start; reload the window
   (`cmd('Developer: Reload Window')`) to test persistence instead of restarting.
 - Dialogs and context menus use `window.dialogStyle`/`window.menuStyle: custom`, since native ones cannot open headless.

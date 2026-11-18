@@ -29,7 +29,7 @@ const FilterTypes = {
   ExcludableCheckboxGroup: 'XCheckbox',
 };
 
-export const DEFAULT_COVER =
+const DEFAULT_COVER =
   'https://github.com/lnreader/lnreader-plugins/blob/master/public/static/coverNotAvailable.webp?raw=true';
 
 const isUrlAbsolute = (url: string) =>

@@ -19,6 +19,9 @@ import { BrowsePanel } from './sources/browsePanel';
 import { registerSourceCommands, runImport } from './commands/sourceCommands';
 import { registerChapterCommands } from './commands/chapterCommands';
 import { ReadStore } from './epub/readStore';
+import { TitleStore } from './epub/titleStore';
+import { registerBookCommands } from './commands/bookCommands';
+import { BookmarksPanel } from './content/bookmarksView';
 import { DownloadQueue } from './sources/downloadQueue';
 import { ChapterDecorations } from './tree/chapterItem';
 
@@ -31,7 +34,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const readStore = new ReadStore(context);
   const novels = new NovelStore(storageDir, sources, readStore);
   const downloads = new DownloadQueue(novels);
-  const library = new Library(imagesDir, path.join(storageDir, 'downloads'), novels);
+  const titles = new TitleStore(context);
+  const library = new Library(imagesDir, path.join(storageDir, 'downloads'), novels, titles);
   const progress = new ProgressStore(context);
   const scroll = new ScrollStore(context);
   flushPendingState = async () => {
@@ -47,28 +51,21 @@ export function activate(context: vscode.ExtensionContext): void {
   });
   tree.attachView(treeView);
 
-  const markAsReading = (filePath: string, index: number) => tree.markReading(filePath, index);
-  const markFinished = (filePath: string, index: number) => {
+  // Opening a chapter is what marks it read, in either reader.
+  const markAsReading = (filePath: string, index: number) => {
+    tree.markReading(filePath, index);
     if (!readStore.isRead(filePath, index)) {
       void readStore.setRead(filePath, [index], true);
     }
   };
-  const nowReading = new NowReadingViewProvider(
-    library,
-    progress,
-    scroll,
-    vscode.Uri.file(imagesDir),
-    markAsReading,
-    markFinished
-  );
+  const nowReading = new NowReadingViewProvider(library, progress, scroll, vscode.Uri.file(imagesDir), markAsReading);
   const reader = new ReaderPanel(
     library,
     progress,
     scroll,
     vscode.Uri.file(imagesDir),
     vscode.Uri.joinPath(context.extensionUri, 'resources', 'icon.png'),
-    markAsReading,
-    markFinished
+    markAsReading
   );
   const settings = new SettingsPanel({ main: reader, side: nowReading });
   const { displayName, version } = context.extension.packageJSON as { displayName?: string; version?: string };
@@ -88,9 +85,12 @@ export function activate(context: vscode.ExtensionContext): void {
     importLink: (url) => runImport(url, { sources, novels, library, tree, browse, progress }),
   });
 
-  registerCommands(context, library, progress, tree, nowReading, reader, settings, about);
+  registerCommands(context, library, progress, readStore, tree, nowReading, reader, settings, about);
   registerSourceCommands(context, { sources, novels, library, tree, browse, progress });
   registerChapterCommands(context, { library, readStore, novels, downloads, tree });
+  const bookmarks = new BookmarksPanel(context.extensionUri, library, readStore, titles);
+  context.subscriptions.push(bookmarks, titles.onDidChange(() => tree.refresh()));
+  registerBookCommands(context, { library, readStore, progress, titles, novels, downloads, browse, tree, bookmarks });
 
   // Read marks and downloads show in the tree (dimmed / ↓) and on the Browse page.
   const refreshTree = debounceTimer(() => tree.refresh(), 300);

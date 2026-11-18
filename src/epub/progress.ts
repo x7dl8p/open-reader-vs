@@ -19,6 +19,11 @@ export class ProgressStore {
     return this.context.globalState.get<ProgressMap>(KEY, {});
   }
 
+  /** The last chapter opened, or undefined if the book has never been opened. */
+  last(filePath: string): number | undefined {
+    return this.read()[filePath];
+  }
+
   get(filePath: string): number {
     return this.read()[filePath] ?? 0;
   }
@@ -30,6 +35,16 @@ export class ProgressStore {
     if (all[filePath] === chapterIndex) {return;}
     all[filePath] = chapterIndex;
     await this.context.globalState.update(KEY, all);
+  }
+
+  /** Drop everything remembered about a book, e.g. after it is deleted. */
+  async forget(filePath: string): Promise<void> {
+    const all = { ...this.read() };
+    delete all[filePath];
+    await this.context.globalState.update(KEY, all);
+    if (this.getLastRead()?.filePath === filePath) {
+      await this.context.globalState.update(LAST_READ_KEY, undefined);
+    }
   }
 
   getLastRead(): LastRead | undefined {

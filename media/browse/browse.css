@@ -302,9 +302,8 @@ img.broken { visibility: hidden; }
 .chapter .bm .codicon { font-size: 13px; color: var(--vscode-charts-yellow, var(--vscode-textLink-foreground)); }
 .chapter .reading { font-size: 11px; padding: 0 6px; border-radius: 9px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); }
 .chapter.current { background: var(--vscode-list-inactiveSelectionBackground); }
-/* Read chapters fade back, as in the app. */
-.chapter.read .num, .chapter.read .cname, .chapter.read .time { opacity: .42; }
-.chapter.read .num { opacity: .3; }
+/* Unread chapters at full strength, read ones at 25%. */
+.chapter.read .num, .chapter.read .cname, .chapter.read .time { opacity: .25; }
 
 /* Checkbox: shown on hover, always while a selection exists. */
 .chapter .check {
@@ -379,8 +378,25 @@ img.broken { visibility: hidden; }
 .toast .codicon-check { color: var(--vscode-testing-iconPassed, inherit); }
 .toast.error .codicon { color: var(--vscode-editorError-foreground); }
 
+/* Medium widths: a smaller source icon and more room between wrapped chapter controls.
+   Declared before the narrow block so its sizes win below 720px. */
+@media (max-width: 1000px) {
+  .details-icon { width: 96px; height: 96px; }
+  .row-title { row-gap: 8px; }
+}
+
+/* Narrow editor: sources on top, the page below. The sash is hidden, which takes it
+   out of the grid, so there are exactly two rows and the page fills what is left. */
 @media (max-width: 720px) {
-  #app { grid-template-columns: 1fr; grid-template-rows: 45vh 0 1fr; }
+  #app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 40vh) minmax(0, 1fr); }
   .sash { display: none; }
-  .details-header, .novel-header { flex-direction: column; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--vscode-sideBar-border, var(--vscode-widget-border, rgba(128,128,128,.3))); }
+  .page { padding: 16px 16px 40px; }
+  .details-header, .novel-header { flex-direction: column; gap: 12px; }
+  .details-icon { width: 72px; height: 72px; }
+  .novel-cover { width: 120px; }
+  .nav-tabs { flex-wrap: wrap; }
+  .nav-tabs .search-box.small { flex: 1 1 100%; order: 5; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 14px 10px; }
+  .chapter .time { display: none; }
 }

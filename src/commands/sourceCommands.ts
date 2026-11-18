@@ -25,8 +25,7 @@ export function registerSourceCommands(context: vscode.ExtensionContext, deps: S
     vscode.commands.registerCommand('openReader.browseSources', () => deps.browse.open()),
     vscode.commands.registerCommand('openReader.importFromLink', () => promptImport(deps)),
     vscode.commands.registerCommand('openReader.showInSources', (item: BookItem) => showInSources(item, deps)),
-    vscode.commands.registerCommand('openReader.refreshNovel', (item: BookItem) => refreshNovel(item, deps)),
-    vscode.commands.registerCommand('openReader.removeFromLibrary', (item: BookItem) => removeFromLibrary(item, deps))
+    vscode.commands.registerCommand('openReader.refreshNovel', (item: BookItem) => refreshNovel(item, deps))
   );
 }
 
@@ -132,8 +131,3 @@ async function refreshNovel(item: BookItem, { novels, tree, browse }: SourceDeps
   }
 }
 
-async function removeFromLibrary(item: BookItem, { novels, tree, browse }: SourceDeps): Promise<void> {
-  await novels.setInLibrary(item.book.filePath, false);
-  tree.refresh();
-  browse.notifyChanged();
-}
